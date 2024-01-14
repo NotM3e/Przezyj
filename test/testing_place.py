@@ -1,51 +1,35 @@
 import tkinter as tk
-from tkinter import messagebox
+import time
 
-class Game():
-    def __init__(self, root, play):
+class ScrollingInfoBar:
+    def __init__(self, root, text, width=400, height=30, scroll_speed=2):
         self.root = root
-        self.play = play
-        self.root.title("Przeżyj!")
-        self.root.configure(bg="#fff")
-        self.root.minsize(270, 170)
-        self.root.maxsize(650, 265)
+        self.width = width
+        self.height = height
+        self.scroll_speed = scroll_speed
 
-        self.load_frame = tk.Frame(self.root, bg="blue")
-        self.load_label1 = tk.Label(self.load_frame, text="Wczytaj", font=("Courier New Baltic", 14), bg="blue")
-        self.load_listbox = tk.Listbox(self.load_frame, selectmode=tk.SINGLE, width=50, height=5)
-        self.load_button1 = tk.Button(self.load_frame, text="Wczytaj", font=("Courier New Baltic", 12), bg="green", width=15, command=self.load_game)
-        self.load_button2 = tk.Button(self.load_frame, text="Wróć", font=("Courier New Baltic", 12), bg="green", width=15, command=lambda: [self.hide_frame(self.load_frame), self.start_frame.pack(fill=tk.BOTH, expand=True)])
+        self.canvas = tk.Canvas(root, width=width, height=height, bg="white")
+        self.canvas.pack()
 
-        self.load_frame.pack(fill=tk.BOTH, expand=True)
-        self.load_label1.pack(pady=5)
-        self.load_listbox.pack()
-        self.load_button1.pack(ipady=2, pady=5)
-        self.load_button2.pack(ipady=2)
+        self.text_id = self.canvas.create_text(0, height // 2, anchor=tk.W, text=text, font=("Arial", 12), fill="black")
+        self.text_width = self.canvas.bbox(self.text_id)[2] - self.canvas.bbox(self.text_id)[0]
 
-        # Dodanie ikony pytajnika w prawym dolnym rogu
-        self.question_icon = tk.PhotoImage(file="questionmark.png")
-        screen_width = self.root.winfo_screenwidth()
-        screen_height = self.root.winfo_screenheight()
-        self.question_canvas = tk.Canvas(self.root, width=32, height=32, bg="#fff", bd=0, highlightthickness=0)
-        self.question_canvas.create_image(screen_width - 16, screen_height - 16, anchor=tk.SE, image=self.question_icon)
-        self.question_canvas.pack()
+        self.start_scroll()
 
-        # Powiązanie zdarzenia kliknięcia ikony pytajnika
-        self.question_canvas.bind("<Button-1>", self.show_info_message)
+    def start_scroll(self):
+        self.canvas.coords(self.text_id, self.width, self.height // 2)
+        self.scroll_text()
 
-    def show_info_message(self, event):
-        # Wyświetlenie messagebox po kliknięciu ikony pytajnika
-        messagebox.showinfo("Informacja", "To jest dodatkowa informacja!")
-
-    def load_game(self):
-        # Obsługa wczytywania gry
-        print("Wczytywanie gry...")
-
-    def hide_frame(self, frame):
-        frame.pack_forget()
+    def scroll_text(self):
+        x, y = self.canvas.coords(self.text_id)
+        if x + self.text_width > 0:
+            self.canvas.move(self.text_id, -self.scroll_speed, 0)
+            self.root.after(10, self.scroll_text)
+        else:
+            self.start_scroll()
 
 root = tk.Tk()
-play = True
-game = Game(root, play)
+root.geometry("500x100")
 
+scrolling_bar = ScrollingInfoBar(root, text="To jest pasek informacyjny przesuwający tekst z lewej do prawej.")
 root.mainloop()

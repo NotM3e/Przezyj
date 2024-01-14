@@ -1,0 +1,9 @@
+
+*.png
+*.xcf
+*.txt
+test/testing_place.py
+test/testing_place2.py
+*.blend
+test/testing_place.py
+testing_place3.py
