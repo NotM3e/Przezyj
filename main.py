@@ -128,7 +128,7 @@ class Game():
         
     def question(self, quest, prev_func, next_func):
         self.question_frame = tk.Frame(self.root_main, bg=self.color_1)
-        self.question_label1 = tk.Label(self.question_frame, text=quest, font=self.font_h3, fg=self.color_7, bg=self.color_1, wraplength=350)
+        self.question_label1 = tk.Label(self.question_frame, text=quest, font=self.font_h3, fg=self.color_7, bg=self.color_1, wraplength=450)
         self.question_frame1 = tk.Frame(self.question_frame, bg=self.color_1)
         self.question_button1 = tk.Button(self.question_frame1, text="Nie", font=self.font_p1, bg=self.color_2, width=8, command=lambda:
                 [self.hide_frame(self.question_frame), prev_func()])
@@ -180,7 +180,7 @@ class Game():
     def save_game(self):
         save_title = self.maingame_save_entry1.get()
         if not save_title:
-            self.maingame_save_label2.config(text="Wpisz nazwe zapisu")
+            self.maingame_save_label2.config(text="Wpisz tytuł zapisu")
             return
         
         n = 1
@@ -305,12 +305,25 @@ class Game():
 
         # Create of main elements
         self.maingame_frame3 = tk.Frame(self.maingame_frame1, bg=self.color_1)
-        self.maingame_button1 = tk.Button(self.maingame_frame3, text="Następny dzień", font=self.font_p1, bg=self.color_2, width=15, command=self.next_day)
-        self.maingame_button2 = tk.Button(self.maingame_frame3, text="Sklep", font=self.font_p1, bg=self.color_2, width=15)
-        self.maingame_button3 = tk.Button(self.maingame_frame3, text="Praca", font=self.font_p1, bg=self.color_2, width=15)
-        self.maingame_button4 = tk.Button(self.maingame_frame3, text="Statystyki", font=self.font_p1, bg=self.color_2, width=15)
-        self.maingame_frame4 = tk.Frame(self.maingame_frame1, bg=self.color_1)
-        self.maingame_label5 = tk.Label(self.maingame_frame4, text="", font=self.font_p2, fg=self.color_7, bg=self.color_1, wraplength=270)
+        self.maingame_frame4 = tk.Frame(self.maingame_frame3, bg=self.color_1)
+        self.maingame_frame5 = tk.Frame(self.maingame_frame3, bg=self.color_1)
+        self.maingame_frame6 = tk.Frame(self.maingame_frame3, bg=self.color_1)
+        self.maingame_button1 = tk.Button(self.maingame_frame5, text="Następny dzień", font=self.font_p1, bg=self.color_2, width=15, command=self.next_day)
+        self.maingame_button2 = tk.Button(self.maingame_frame5, text="Sklep", font=self.font_p1, bg=self.color_2, width=15)
+        self.maingame_button3 = tk.Button(self.maingame_frame5, text="Praca", font=self.font_p1, bg=self.color_2, width=15)
+        self.maingame_button4 = tk.Button(self.maingame_frame5, text="Statystyki", font=self.font_p1, bg=self.color_2, width=15)
+        self.maingame_frame7 = tk.Frame(self.maingame_frame1, bg=self.color_1)
+        self.maingame_label5 = tk.Label(self.maingame_frame7, text="", font=self.font_p2, fg=self.color_7, bg=self.color_1, wraplength=270)
+
+        # Create of needs elements
+        self.maingame_frame4_1 = tk.Frame(self.maingame_frame4, bg=self.color_1, highlightbackground=self.color_2, highlightthickness=2)
+        self.maingame_frame4_1label = tk.Label(self.maingame_frame4_1, text="Potrzeby postaci:", font=self.font_p1, fg=self.color_7, bg=self.color_1, width=17)
+        self.maingame_frame4_1frame = tk.Frame(self.maingame_frame4_1, bg=self.color_1, highlightbackground=self.color_2, highlightthickness=1)
+
+        # Create of equipment elements
+        self.maingame_frame4_2 = tk.Frame(self.maingame_frame6, bg=self.color_1, highlightbackground=self.color_2, highlightthickness=2)
+        self.maingame_frame4_2label = tk.Label(self.maingame_frame4_2, text="Ekwipunek postaci:", font=self.font_p1, fg=self.color_7, bg=self.color_1, width=17)
+        self.maingame_frame4_2frame = tk.Frame(self.maingame_frame4_2, bg=self.color_1, highlightbackground=self.color_2, highlightthickness=1)
 
         # Visualisation of statistical elements
         self.maingame_frame0.pack(fill=tk.BOTH, expand=True, padx=3, pady=5)
@@ -322,16 +335,30 @@ class Game():
         self.maingame_stats_label4.grid(row=1, column=1, padx=5, ipady=3)
 
         # Visualisation of main elements
-        self.maingame_frame3.pack(expand=True)
+        self.maingame_frame3.pack(fill=tk.BOTH, expand=True)
+        self.maingame_frame4.pack(fill=tk.BOTH, expand=True, side=tk.LEFT)
+        self.maingame_frame5.pack(expand=True, side=tk.LEFT, padx=30)
+        self.maingame_frame6.pack(fill=tk.BOTH, expand=True, side=tk.RIGHT)
         self.maingame_button1.pack(ipadx=5, ipady=4, pady=3)
         self.maingame_button2.pack(ipadx=5, ipady=4, pady=3)
         self.maingame_button3.pack(ipadx=5, ipady=4, pady=3)
         self.maingame_button4.pack(ipadx=5, ipady=4, pady=3)
-        self.maingame_frame4.pack(fill=tk.BOTH, expand=True)
+        self.maingame_frame7.pack(fill=tk.BOTH, expand=True)
         self.maingame_label5.pack(pady=5, side=tk.LEFT, anchor=tk.SW)
 
+        # Visualisation of needs elements
+        self.maingame_frame4_1.pack(fill=tk.BOTH, expand=True, padx=3, pady=5)
+        self.maingame_frame4_1label.pack()
+        self.maingame_frame4_1frame.pack(fill=tk.BOTH, expand=True)
+
+        # Visualisation of equipment elements
+        self.maingame_frame4_2.pack(fill=tk.BOTH, expand=True, padx=3, pady=5)
+        self.maingame_frame4_2label.pack()
+        self.maingame_frame4_2frame.pack(fill=tk.BOTH, expand=True)
+
+
         # Question icon
-        self.maingame_question_canvas = tk.Canvas(self.maingame_frame4, bg=self.color_1, bd=0, highlightthickness=0, width=32, height=32)
+        self.maingame_question_canvas = tk.Canvas(self.maingame_frame7, bg=self.color_1, bd=0, highlightthickness=0, width=32, height=32)
         self.maingame_question_canvas.create_image(16, 16, anchor=tk.CENTER, image=self.question_icon)
         self.maingame_question_canvas.pack(padx=5, side=tk.RIGHT, anchor=tk.SE)
         
@@ -380,12 +407,15 @@ class Game():
 
         self.maingame_save_frame1.pack_forget()
 
+    # Refresh of data in the game window, called when it changes
     def refresh_data(self):
-        print("TEST")
+        self.maingame_stats_label3.config(text=self.stats['day'])
+        self.maingame_stats_label4.config(text=f"{self.stats['money']} PLN")
 
     def next_day(self):
         self.stats["day"] += 1
         print(f"day = {self.stats['day']}")
+        self.refresh_data()
 
 
 root = tk.Tk()
