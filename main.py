@@ -32,6 +32,8 @@ class Game():
         self.color_6 = "#BBFFBD"    # Green
         self.color_7 = "#FFFFFF"    # White
         self.color_8 = "#1F2C44"    # Shadow border
+        
+        self.question_icon = tk.PhotoImage(file="data/img/questionmark.png")
 
         self.root_main = tk.Frame(self.root, bg=self.color_1)
         self.root_main.pack(fill=tk.BOTH, expand=True)
@@ -95,7 +97,6 @@ class Game():
         self.load_label2.pack(pady=5, side=tk.LEFT, anchor=tk.SW)
 
         # Question icon
-        self.question_icon = tk.PhotoImage(file="data/img/questionmark.png")
         self.load_question_canvas = tk.Canvas(self.load_frame2, bg=self.color_1, bd=0, highlightthickness=0, width=32, height=32)
         self.load_question_canvas.create_image(16, 16, anchor=tk.CENTER, image=self.question_icon)
         self.load_question_canvas.pack(pady=5, padx=5, side=tk.RIGHT, anchor=tk.SE)
@@ -240,7 +241,7 @@ class Game():
         print("Stats:", self.stats)
         self.hide_frame(self.load_frame1)
         self.create_maingame()
-
+        self.load_label2.config(text="")
 
     def selected_delate_save(self, listbox, command_log):
         selected_index = listbox.curselection()
@@ -303,27 +304,33 @@ class Game():
         self.maingame_home_canvas.grid(row=0, column=6, rowspan=2, columnspan=2, padx=5)
         self.maingame_settings_canvas.grid(row=0, column=8, rowspan=2, columnspan=2, padx=5)
 
-        # Create of main elements
+        # Creating a moving label
         self.maingame_frame3 = tk.Frame(self.maingame_frame1, bg=self.color_1)
-        self.maingame_frame4 = tk.Frame(self.maingame_frame3, bg=self.color_1)
-        self.maingame_frame5 = tk.Frame(self.maingame_frame3, bg=self.color_1)
-        self.maingame_frame6 = tk.Frame(self.maingame_frame3, bg=self.color_1)
-        self.maingame_button1 = tk.Button(self.maingame_frame5, text="Następny dzień", font=self.font_p1, bg=self.color_2, width=15, command=self.next_day)
-        self.maingame_button2 = tk.Button(self.maingame_frame5, text="Sklep", font=self.font_p1, bg=self.color_2, width=15)
-        self.maingame_button3 = tk.Button(self.maingame_frame5, text="Praca", font=self.font_p1, bg=self.color_2, width=15)
-        self.maingame_button4 = tk.Button(self.maingame_frame5, text="Statystyki", font=self.font_p1, bg=self.color_2, width=15)
-        self.maingame_frame7 = tk.Frame(self.maingame_frame1, bg=self.color_1)
-        self.maingame_label5 = tk.Label(self.maingame_frame7, text="", font=self.font_p2, fg=self.color_7, bg=self.color_1, wraplength=270)
+        self.maingame_frame3_canvas = tk.Canvas(self.maingame_frame3, width=594, height=22, bg=self.color_1, highlightthickness=0)
+        self.maingame_text_id = self.maingame_frame3_canvas.create_text(0, 22 // 2, anchor=tk.W, text="", font=("Arial", 12), fill="white")
+        self.maingame_text_width = self.maingame_frame3_canvas.bbox(self.maingame_text_id)[2] - self.maingame_frame3_canvas.bbox(self.maingame_text_id)[0]
+
+        # Create of main elements
+        self.maingame_frame4 = tk.Frame(self.maingame_frame1, bg=self.color_1)
+        self.maingame_frame5 = tk.Frame(self.maingame_frame4, bg=self.color_1)
+        self.maingame_frame6 = tk.Frame(self.maingame_frame4, bg=self.color_1)
+        self.maingame_frame7 = tk.Frame(self.maingame_frame4, bg=self.color_1)
+        self.maingame_button1 = tk.Button(self.maingame_frame6, text="Następny dzień", font=self.font_p1, bg=self.color_2, width=15, command=self.next_day)
+        self.maingame_button2 = tk.Button(self.maingame_frame6, text="Sklep", font=self.font_p1, bg=self.color_2, width=15)
+        self.maingame_button3 = tk.Button(self.maingame_frame6, text="Praca", font=self.font_p1, bg=self.color_2, width=15)
+        self.maingame_button4 = tk.Button(self.maingame_frame6, text="Statystyki", font=self.font_p1, bg=self.color_2, width=15)
+        self.maingame_frame8 = tk.Frame(self.maingame_frame1, bg=self.color_1)
+        self.maingame_label5 = tk.Label(self.maingame_frame8, text="", font=self.font_p2, fg=self.color_7, bg=self.color_1, wraplength=270)
 
         # Create of needs elements
-        self.maingame_frame4_1 = tk.Frame(self.maingame_frame4, bg=self.color_1, highlightbackground=self.color_2, highlightthickness=2)
-        self.maingame_frame4_1label = tk.Label(self.maingame_frame4_1, text="Potrzeby postaci:", font=self.font_p1, fg=self.color_7, bg=self.color_1, width=17)
-        self.maingame_frame4_1frame = tk.Frame(self.maingame_frame4_1, bg=self.color_1, highlightbackground=self.color_2, highlightthickness=1)
+        self.maingame_frame5_1 = tk.Frame(self.maingame_frame5, bg=self.color_1, highlightbackground=self.color_2, highlightthickness=2)
+        self.maingame_frame5_1label = tk.Label(self.maingame_frame5_1, text="Potrzeby postaci:", font=self.font_p1, fg=self.color_7, bg=self.color_1, width=17)
+        self.maingame_frame5_1frame = tk.Frame(self.maingame_frame5_1, bg=self.color_1, highlightbackground=self.color_2, highlightthickness=1)
 
         # Create of equipment elements
-        self.maingame_frame4_2 = tk.Frame(self.maingame_frame6, bg=self.color_1, highlightbackground=self.color_2, highlightthickness=2)
-        self.maingame_frame4_2label = tk.Label(self.maingame_frame4_2, text="Ekwipunek postaci:", font=self.font_p1, fg=self.color_7, bg=self.color_1, width=17)
-        self.maingame_frame4_2frame = tk.Frame(self.maingame_frame4_2, bg=self.color_1, highlightbackground=self.color_2, highlightthickness=1)
+        self.maingame_frame5_2 = tk.Frame(self.maingame_frame7, bg=self.color_1, highlightbackground=self.color_2, highlightthickness=2)
+        self.maingame_frame5_2label = tk.Label(self.maingame_frame5_2, text="Ekwipunek postaci:", font=self.font_p1, fg=self.color_7, bg=self.color_1, width=17)
+        self.maingame_frame5_2frame = tk.Frame(self.maingame_frame5_2, bg=self.color_1, highlightbackground=self.color_2, highlightthickness=1)
 
         # Visualisation of statistical elements
         self.maingame_frame0.pack(fill=tk.BOTH, expand=True, padx=3, pady=5)
@@ -334,31 +341,36 @@ class Game():
         self.maingame_stats_label3.grid(row=1, column=0, padx=5, ipady=3)
         self.maingame_stats_label4.grid(row=1, column=1, padx=5, ipady=3)
 
+
+        # Visualisation a moving label
+        self.maingame_frame3.pack(fill="x")
+        self.maingame_frame3_canvas.pack()
+
         # Visualisation of main elements
-        self.maingame_frame3.pack(fill=tk.BOTH, expand=True)
-        self.maingame_frame4.pack(fill=tk.BOTH, expand=True, side=tk.LEFT)
-        self.maingame_frame5.pack(expand=True, side=tk.LEFT, padx=30)
-        self.maingame_frame6.pack(fill=tk.BOTH, expand=True, side=tk.RIGHT)
+        self.maingame_frame4.pack(fill=tk.BOTH, expand=True)
+        self.maingame_frame5.pack(fill=tk.BOTH, expand=True, side=tk.LEFT)
+        self.maingame_frame6.pack(expand=True, side=tk.LEFT, padx=30)
+        self.maingame_frame7.pack(fill=tk.BOTH, expand=True, side=tk.RIGHT)
         self.maingame_button1.pack(ipadx=5, ipady=4, pady=3)
         self.maingame_button2.pack(ipadx=5, ipady=4, pady=3)
         self.maingame_button3.pack(ipadx=5, ipady=4, pady=3)
         self.maingame_button4.pack(ipadx=5, ipady=4, pady=3)
-        self.maingame_frame7.pack(fill=tk.BOTH, expand=True)
+        self.maingame_frame8.pack(fill=tk.BOTH, expand=True)
         self.maingame_label5.pack(pady=5, side=tk.LEFT, anchor=tk.SW)
 
         # Visualisation of needs elements
-        self.maingame_frame4_1.pack(fill=tk.BOTH, expand=True, padx=3, pady=5)
-        self.maingame_frame4_1label.pack()
-        self.maingame_frame4_1frame.pack(fill=tk.BOTH, expand=True)
+        self.maingame_frame5_1.pack(fill=tk.BOTH, expand=True, padx=3, pady=5)
+        self.maingame_frame5_1label.pack()
+        self.maingame_frame5_1frame.pack(fill=tk.BOTH, expand=True)
 
         # Visualisation of equipment elements
-        self.maingame_frame4_2.pack(fill=tk.BOTH, expand=True, padx=3, pady=5)
-        self.maingame_frame4_2label.pack()
-        self.maingame_frame4_2frame.pack(fill=tk.BOTH, expand=True)
+        self.maingame_frame5_2.pack(fill=tk.BOTH, expand=True, padx=3, pady=5)
+        self.maingame_frame5_2label.pack()
+        self.maingame_frame5_2frame.pack(fill=tk.BOTH, expand=True)
 
 
         # Question icon
-        self.maingame_question_canvas = tk.Canvas(self.maingame_frame7, bg=self.color_1, bd=0, highlightthickness=0, width=32, height=32)
+        self.maingame_question_canvas = tk.Canvas(self.maingame_frame8, bg=self.color_1, bd=0, highlightthickness=0, width=32, height=32)
         self.maingame_question_canvas.create_image(16, 16, anchor=tk.CENTER, image=self.question_icon)
         self.maingame_question_canvas.pack(padx=5, side=tk.RIGHT, anchor=tk.SE)
         
