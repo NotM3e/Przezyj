@@ -32,8 +32,11 @@ class Game():
         self.color_6 = "#BBFFBD"    # Green
         self.color_7 = "#FFFFFF"    # White
         self.color_8 = "#1F2C44"    # Shadow border
-        
+
+        self.style = ttk.Style()
         self.question_icon = tk.PhotoImage(file="data/img/questionmark.png")
+        # self.style.theme_use("clam")
+        self.style.configure("TEST", foreground="blue", background="red")
 
         self.root_main = tk.Frame(self.root, bg=self.color_1)
         self.root_main.pack(fill=tk.BOTH, expand=True)
@@ -57,7 +60,7 @@ class Game():
         self.start_button2 = tk.Button(self.start_frame, text="Zacznij nową grę!", font=self.font_p1, bg=self.color_2, width=15, command=lambda:
                 [self.hide_frame(self.start_frame), self.new_game()])
         self.start_button3 = tk.Button(self.start_frame, text="Wczytaj grę!", font=self.font_p1, bg=self.color_2, width=15, command=lambda:
-                [self.hide_frame(self.start_frame), self.load_frame1.pack(padx=3, pady=2, fill=tk.BOTH, expand=True)])
+                [self.hide_frame(self.start_frame), self.load_saves(self.load_listbox), self.load_frame1.pack(padx=3, pady=2, fill=tk.BOTH, expand=True)])
         self.start_button4 = tk.Button(self.start_frame, text="Osiągnięcia", font=self.font_p1, bg=self.color_2, width=15)
 
     # Info tab:
@@ -148,13 +151,14 @@ class Game():
             "day": 0,
             "money": round(random.uniform(9.90, 21.90), 2),
             "work": 0,
+            "duty": False,
             "intelligence": 10,
             "strength": 10,
             "stamina": 10,
             "luck": 10,
             "thirst": 100,
-            "hunger": 100,
-            "fatigue": 100,
+            "hunger": 99,
+            "fatigue": 98,
             "water": 0,
             "baguette": 0,
             "creamery": 0,
@@ -325,12 +329,24 @@ class Game():
         # Create of needs elements
         self.maingame_frame5_1 = tk.Frame(self.maingame_frame5, bg=self.color_1, highlightbackground=self.color_2, highlightthickness=2)
         self.maingame_frame5_1label = tk.Label(self.maingame_frame5_1, text="Potrzeby postaci:", font=self.font_p1, fg=self.color_7, bg=self.color_1, width=17)
-        self.maingame_frame5_1frame = tk.Frame(self.maingame_frame5_1, bg=self.color_1, highlightbackground=self.color_2, highlightthickness=1)
+        self.maingame_frame5_1frame1 = tk.Frame(self.maingame_frame5_1, bg=self.color_1, highlightbackground=self.color_2, highlightthickness=1)
+        self.maingame_frame5_1frame2 = tk.Frame(self.maingame_frame5_1frame1, bg=self.color_1)
+        self.maingame_frame5_1_label1 = tk.Label(self.maingame_frame5_1frame2, text="Pragnienie", font=self.font_p2i, fg=self.color_2, bg=self.color_1)
+        self.maingame_frame5_1_progressbar1 = ttk.Progressbar(self.maingame_frame5_1frame2, orient="horizontal", mode="determinate", length=120, maximum=100)
+        self.maingame_frame5_1_label2 = tk.Label(self.maingame_frame5_1frame2, text="Głód", font=self.font_p2i, fg=self.color_2, bg=self.color_1)
+        self.maingame_frame5_1_progressbar2 = ttk.Progressbar(self.maingame_frame5_1frame2, orient="horizontal", mode="determinate", length=120, maximum=100)
+        self.maingame_frame5_1_label3 = tk.Label(self.maingame_frame5_1frame2, text="Zmęczenie", font=self.font_p2i, fg=self.color_2, bg=self.color_1)
+        self.maingame_frame5_1_progressbar3 = ttk.Progressbar(self.maingame_frame5_1frame2, orient="horizontal", mode="determinate", length=120, maximum=100)
+
+        # Configure grid columns
+        self.maingame_frame5_1frame2.grid_columnconfigure(0, weight=1)
+        self.maingame_frame5_1frame2.grid_rowconfigure(0, weight=0)
 
         # Create of equipment elements
         self.maingame_frame5_2 = tk.Frame(self.maingame_frame7, bg=self.color_1, highlightbackground=self.color_2, highlightthickness=2)
         self.maingame_frame5_2label = tk.Label(self.maingame_frame5_2, text="Ekwipunek postaci:", font=self.font_p1, fg=self.color_7, bg=self.color_1, width=17)
-        self.maingame_frame5_2frame = tk.Frame(self.maingame_frame5_2, bg=self.color_1, highlightbackground=self.color_2, highlightthickness=1)
+        self.maingame_frame5_2frame1 = tk.Frame(self.maingame_frame5_2, bg=self.color_1, highlightbackground=self.color_2, highlightthickness=1)
+        self.maingame_frame5_2frame2 = tk.Frame(self.maingame_frame5_2frame1, bg="red")
 
         # Visualisation of statistical elements
         self.maingame_frame0.pack(fill=tk.BOTH, expand=True, padx=3, pady=5)
@@ -340,7 +356,6 @@ class Game():
         self.maingame_stats_label2.grid(row=0, column=1, padx=5)
         self.maingame_stats_label3.grid(row=1, column=0, padx=5, ipady=3)
         self.maingame_stats_label4.grid(row=1, column=1, padx=5, ipady=3)
-
 
         # Visualisation a moving label
         self.maingame_frame3.pack(fill="x")
@@ -361,13 +376,20 @@ class Game():
         # Visualisation of needs elements
         self.maingame_frame5_1.pack(fill=tk.BOTH, expand=True, padx=3, pady=5)
         self.maingame_frame5_1label.pack()
-        self.maingame_frame5_1frame.pack(fill=tk.BOTH, expand=True)
+        self.maingame_frame5_1frame1.pack(fill=tk.BOTH, expand=True)
+        self.maingame_frame5_1frame2.pack(expand=True)
+        self.maingame_frame5_1_label1.grid(row=0, column=0)
+        self.maingame_frame5_1_progressbar1.grid(row=1, column=0)
+        self.maingame_frame5_1_label2.grid(row=2, column=0)
+        self.maingame_frame5_1_progressbar2.grid(row=3, column=0)
+        self.maingame_frame5_1_label3.grid(row=4, column=0)
+        self.maingame_frame5_1_progressbar3.grid(row=5, column=0)
 
         # Visualisation of equipment elements
         self.maingame_frame5_2.pack(fill=tk.BOTH, expand=True, padx=3, pady=5)
         self.maingame_frame5_2label.pack()
-        self.maingame_frame5_2frame.pack(fill=tk.BOTH, expand=True)
-
+        self.maingame_frame5_2frame1.pack(fill=tk.BOTH, expand=True)
+        self.maingame_frame5_2frame2.pack(expand=True)
 
         # Question icon
         self.maingame_question_canvas = tk.Canvas(self.maingame_frame8, bg=self.color_1, bd=0, highlightthickness=0, width=32, height=32)
@@ -383,6 +405,15 @@ class Game():
         self.maingame_home_canvas.bind("<Button-1>", lambda event:
                 [self.hide_frame(self.maingame_frame0),
                  self.question("Czy na pewno chcesz wrócić do menu głównego?", (lambda: self.maingame_frame0.pack(fill=tk.BOTH, expand=True, padx=3, pady=5)), self.show_start_gui)])
+
+        self.work_ranges_fatigue = {
+            0: (0, 0),      # Bezrobotny
+            1: (16, 22),    # Pakowacz na magazynie
+            2: (17, 25),    # Magazynier
+            3: (16, 20),    # Operator wózka widłowego
+            4: (15, 19),    # Kierownik magazynu
+        }
+        self.refresh_data()
 
     # Save tab:
         validate_cmd = (self.root.register(lambda new_text, max_chars=20: self.validate_input(new_text, max_chars)), '%P')
@@ -420,14 +451,42 @@ class Game():
         self.maingame_save_frame1.pack_forget()
 
     # Refresh of data in the game window, called when it changes
-    def refresh_data(self):
+    def refresh_data(self, needs=True):
         self.maingame_stats_label3.config(text=self.stats['day'])
         self.maingame_stats_label4.config(text=f"{self.stats['money']} PLN")
 
-    def next_day(self):
+        if needs:
+            self.maingame_frame5_1_progressbar1["value"] = self.stats["thirst"]
+            self.maingame_frame5_1_progressbar2["value"] = self.stats["hunger"]
+            self.maingame_frame5_1_progressbar3["value"] = self.stats["fatigue"]
+
+    def next_day(self, needs=True):
         self.stats["day"] += 1
         print(f"day = {self.stats['day']}")
+
+        # TEMP before, after, difference i print
+        before = {"thirst": self.stats["thirst"], "hunger": self.stats["hunger"], "fatigue": self.stats["fatigue"]} 
+
+        if needs:
+            self.stats["thirst"] -= random.randint(30, 50)
+            self.stats["hunger"] -= random.randint(25, 45)
+            self.stats["fatigue"] += random.randint(20, 40)
+        elif self.stats["duty"]:
+            self.stats["thirst"] -= random.randint(30, 45)
+            self.stats["hunger"] -= random.randint(30, 45)
+            self.stats["fatigue"] -= self.calculate_fatigue_reduction()
+
+        after = {"thirst": self.stats["thirst"], "hunger": self.stats["hunger"], "fatigue": self.stats["fatigue"]}
+        difference = {key: after[key] - before[key] for key in before}
+        print("Difference:", difference)
+
         self.refresh_data()
+
+    def calculate_fatigue_reduction(self):
+        work_type = self.stats["work"]
+        return random.randint(*self.work_ranges_fatigue.get(work_type, (0, 0)))
+
+
 
 
 root = tk.Tk()
