@@ -1,6 +1,6 @@
 import tkinter as tk
-from tkinter import ttk
-from tkinter import messagebox
+from tkinter import ttk, messagebox
+from PIL import Image, ImageTk
 import datetime
 import random
 import os
@@ -13,7 +13,7 @@ class Game():
         self.root.title("Przeżyj!")
         self.root.configure(bg="#fff")
         self.root.minsize(270, 215)
-        self.root.maxsize(650, 465)
+        # self.root.maxsize(650, 465)
         # self.root.resizable(False, False) # TEMP
 
         self.font_h1 = ("Segoe UI Black", 30)
@@ -35,14 +35,13 @@ class Game():
 
         self.style = ttk.Style()
         self.question_icon = tk.PhotoImage(file="data/img/questionmark.png")
-        # self.style.theme_use("clam")
-        self.style.configure("TEST", foreground="blue", background="red")
 
         self.root_main = tk.Frame(self.root, bg=self.color_1)
         self.root_main.pack(fill=tk.BOTH, expand=True)
+        self.last_save = []
 
         # self.create_statistics() # TEMP
-# 
+
         self.create_start_gui() # TEMP
         self.show_start_gui()   # TEMP
 
@@ -116,6 +115,9 @@ class Game():
         self.start_button3.pack(ipadx=11, ipady=5, pady=4)
         self.start_button4.pack(ipadx=11, ipady=5, pady=4)
 
+        self.last_save = []
+        print(self.last_save)
+
     def show_info_message(self, title, message):
         messagebox.showinfo(title, message)
 
@@ -148,10 +150,11 @@ class Game():
     def create_statistics(self):
     # Statistics on the world in the game:
         self.stats = {
+            "life": True,
             "day": 0,
             "money": round(random.uniform(9.90, 21.90), 2),
             "work": 0,
-            "duty": False,
+            "duty": True,
             "intelligence": 10,
             "strength": 10,
             "stamina": 10,
@@ -159,12 +162,15 @@ class Game():
             "thirst": 100,
             "hunger": 99,
             "fatigue": 98,
-            "water": 0,
-            "baguette": 0,
-            "creamery": 0,
-            "newspaper": False
+            "water": 5,
+            "baguette": 3,
+            "creamery": 1,
+            "newspaper": False,
+            "lastpayment": 0,
+            "deathr": "???"
         }
 
+        self.last_save = []
         self.create_maingame()
 
 
@@ -206,15 +212,25 @@ class Game():
         # Dodawanie zapisu do listboxa
         self.maingame_save_listbox.insert(tk.END, label)
         self.maingame_save_label2.config(text=f"Zapisano save pod nazwą {save_title}")
+        self.last_save.append(save_filename)
+        print(self.last_save)
 
-    def selected_load_save(self):
-        selected_index = self.load_listbox.curselection()
-        if not selected_index:
-            self.load_label2.config(text="Wybierz zapis do wczytania")
-            return
-        
+    def selected_load_save(self, index = None):
+        if not index:
+            selected_index = self.load_listbox.curselection()
+            if not selected_index:
+                self.load_label2.config(text="Wybierz zapis do wczytania")
+                return
+            else:
+                selected_index = selected_index[0]
+        else:
+            selected_index = index
+
         self.load_label2.config(text="Wczytywanie")
-        filename = f"saves/save{selected_index[0] + 1}.txt"
+        filename = f"saves/save{selected_index + 1}.txt"
+
+        if not os.path.exists(filename):
+            self.selected_load_save(selected_index + 1)
 
         # Wczytywanie gry z pliku
         with open(filename, "r") as file:
@@ -233,11 +249,15 @@ class Game():
 
                 if value_str.lower() == "true" or value_str.lower() == "false":
                     value = value_str.lower() == "true"
+
+                elif value_str.isdigit():
+                    value = int(value_str)
+
+                elif value_str.replace('.', '', 1).isdigit():
+                    value = float(value_str)
+
                 else:
-                    try:
-                        value = int(value_str)
-                    except ValueError:
-                        value = float(value_str)
+                    value = value_str
 
                 current_dict[key] = value
 
@@ -246,6 +266,9 @@ class Game():
         self.hide_frame(self.load_frame1)
         self.create_maingame()
         self.load_label2.config(text="")
+
+        self.last_save.append(filename)
+        print(self.last_save)
 
     def selected_delate_save(self, listbox, command_log):
         selected_index = listbox.curselection()
@@ -260,6 +283,12 @@ class Game():
         self.load_listbox.delete(selected_index)
         os.remove(filename)
         command_log.config(text="Usunięto zapis")
+
+        if filename in self.last_save:
+            self.last_save.remove(filename)
+            print(self.last_save)
+        else:
+            print("selected_delate_save - self.last_save - ERROR")
 
     def validate_input(self, new_text, max_chars):
         # Sprawdź, czy nowy tekst nie przekracza maksymalnej liczby znaków
@@ -346,7 +375,8 @@ class Game():
         self.maingame_frame5_2 = tk.Frame(self.maingame_frame7, bg=self.color_1, highlightbackground=self.color_2, highlightthickness=2)
         self.maingame_frame5_2label = tk.Label(self.maingame_frame5_2, text="Ekwipunek postaci:", font=self.font_p1, fg=self.color_7, bg=self.color_1, width=17)
         self.maingame_frame5_2frame1 = tk.Frame(self.maingame_frame5_2, bg=self.color_1, highlightbackground=self.color_2, highlightthickness=1)
-        self.maingame_frame5_2frame2 = tk.Frame(self.maingame_frame5_2frame1, bg="red")
+        self.maingame_frame5_2frame2 = tk.Frame(self.maingame_frame5_2frame1, bg=self.color_1)
+        self.create_item_frames()
 
         # Visualisation of statistical elements
         self.maingame_frame0.pack(fill=tk.BOTH, expand=True, padx=3, pady=5)
@@ -406,13 +436,33 @@ class Game():
                 [self.hide_frame(self.maingame_frame0),
                  self.question("Czy na pewno chcesz wrócić do menu głównego?", (lambda: self.maingame_frame0.pack(fill=tk.BOTH, expand=True, padx=3, pady=5)), self.show_start_gui)])
 
+        self.ranges_payment = {
+            0: 10,
+            1: 20,
+            2: 30,
+            3: 40,
+            4: 55
+        }
+        self.ranges_hunger = {
+            'baguette': (35, 55),
+            'creamery': (20, 30)
+        }
+        self.ranges_water = {
+            'water': (35, 50),
+            'creamery': (5, 10)
+        }
+        self.ranges_fatigue = {
+            'creamery': (5, 10)
+        }
+
         self.work_ranges_fatigue = {
             0: (0, 0),      # Bezrobotny
             1: (16, 22),    # Pakowacz na magazynie
             2: (17, 25),    # Magazynier
             3: (16, 20),    # Operator wózka widłowego
-            4: (15, 19),    # Kierownik magazynu
+            4: (15, 19)     # Kierownik magazynu
         }
+
         self.refresh_data()
 
     # Save tab:
@@ -450,42 +500,221 @@ class Game():
 
         self.maingame_save_frame1.pack_forget()
 
+    # Death tab:
+        self.maingame_death_frame1 = tk.Frame(self.maingame_frame0, bg=self.color_1)
+        self.maingame_death_frame2 = tk.Frame(self.maingame_death_frame1, bg=self.color_1)
+        self.maingame_death_frame2frame1 = tk.Frame(self.maingame_death_frame2, bg=self.color_3, highlightbackground=self.color_8, highlightthickness=2)
+        self.maingame_death_frame2label1 = tk.Label(self.maingame_death_frame2frame1, text="Przyczyna śmierci:", font=self.font_h2, fg=self.color_7, bg=self.color_3)
+        self.maingame_death_frame2label2 = tk.Label(self.maingame_death_frame2frame1, text="{death_reason}", font=self.font_p2, fg=self.color_2, bg=self.color_3)
+
+        self.maingame_death_frame3 = tk.Frame(self.maingame_death_frame1, bg=self.color_1)
+        self.maingame_death_frame4 = tk.Frame(self.maingame_death_frame3, bg=self.color_1)
+        self.maingame_death_frame4frame1 = tk.Frame(self.maingame_death_frame4, bg=self.color_1)
+        self.maingame_death_frame4_frame1 = tk.Frame(self.maingame_death_frame4frame1, bg=self.color_8, highlightbackground=self.color_3, highlightthickness=1)
+        self.maingame_death_frame4_frame1_label1 = tk.Label(self.maingame_death_frame4_frame1, text="Dzień:", font=self.font_p2i, fg=self.color_2, bg=self.color_8, width=12)
+        self.maingame_death_frame4_frame1_label2 = tk.Label(self.maingame_death_frame4_frame1, text=self.stats['day'], font=self.font_p1, fg=self.color_7, bg=self.color_8)
+        self.maingame_death_frame4_frame2 = tk.Frame(self.maingame_death_frame4frame1, bg=self.color_8, highlightbackground=self.color_3, highlightthickness=1)
+        self.maingame_death_frame4_frame2_label1 = tk.Label(self.maingame_death_frame4_frame2, text="Pieniędzy:", font=self.font_p2i, fg=self.color_2, bg=self.color_8, width=12)
+        self.maingame_death_frame4_frame2_label2 = tk.Label(self.maingame_death_frame4_frame2, text=self.stats['money'], font=self.font_p1, fg=self.color_7, bg=self.color_8)
+        self.maingame_death_frame4frame2 = tk.Frame(self.maingame_death_frame4, bg=self.color_1)
+
+        self.maingame_death_frame3_button1 = tk.Button(self.maingame_death_frame3, text="Statystyki", font=self.font_p1, bg=self.color_2, width=15)
+        self.maingame_death_frame3_button2 = tk.Button(self.maingame_death_frame3, text="Dalej", font=self.font_p1, bg=self.color_2, width=15, command=lambda:
+                [self.hide_frame(self.maingame_frame0, self.maingame_death_frame1), self.start_frame.pack(fill=tk.BOTH, expand=True, padx=3, pady=5)])
+        self.maingame_death_frame5 = tk.Frame(self.maingame_death_frame3, bg=self.color_1)
+        self.maingame_death_frame5_label1 = tk.Label(self.maingame_death_frame5, text="", font=self.font_p2, fg=self.color_7, bg=self.color_1, wraplength=370)
+
+        self.maingame_death_frame1.pack(fill=tk.BOTH, expand=True, padx=3, pady=5)
+        self.maingame_death_frame2.pack(fill="x", side=tk.TOP)
+        self.maingame_death_frame2frame1.pack(ipady=5, ipadx=20)
+        self.maingame_death_frame2label1.pack(pady=3)
+        self.maingame_death_frame2label2.pack()
+
+        self.maingame_death_frame3.pack(fill=tk.BOTH, expand=True)
+        self.maingame_death_frame4.pack(padx=5,pady=10)
+        self.maingame_death_frame4frame1.pack(fill=tk.BOTH)
+        self.maingame_death_frame4frame2.pack(fill=tk.BOTH)
+        self.maingame_death_frame4_frame1.pack(padx=7, pady=10, side=tk.LEFT)
+        self.maingame_death_frame4_frame1_label1.grid(row=0, column=0)
+        self.maingame_death_frame4_frame1_label2.grid(row=1, column=0)
+        self.maingame_death_frame4_frame2.pack(padx=7, pady=10, side=tk.LEFT)
+        self.maingame_death_frame4_frame2_label1.grid(row=0, column=1)
+        self.maingame_death_frame4_frame2_label2.grid(row=1, column=1)
+
+        self.maingame_death_frame3_button1.pack(ipady=5, pady=3)
+        self.maingame_death_frame3_button2.pack(ipady=5, pady=3)
+        self.maingame_death_frame5.pack(fill=tk.BOTH, expand=True)
+        self.maingame_death_frame5_label1.pack(pady=5, side=tk.LEFT, anchor=tk.SW)
+
+        self.maingame_death_question_canvas = tk.Canvas(self.maingame_death_frame5, bg=self.color_1, bd=0, highlightthickness=0, width=32, height=32)
+        self.maingame_death_question_canvas.create_image(16, 16, anchor=tk.CENTER, image=self.question_icon)
+        self.maingame_death_question_canvas.pack(pady=5, padx=5, side=tk.RIGHT, anchor=tk.SE)
+                
+        self.maingame_death_question_canvas.bind("<Button-1>", lambda event: self.show_info_message("Tytuł", "Treść wiadomości")) # TEMP konfiguracja wiadomości
+
+        self.maingame_death_frame1.pack_forget()
+
     # Refresh of data in the game window, called when it changes
-    def refresh_data(self, needs=True):
-        self.maingame_stats_label3.config(text=self.stats['day'])
-        self.maingame_stats_label4.config(text=f"{self.stats['money']} PLN")
+    def refresh_data(self, stats=True, needs=True):
+        if stats:
+            self.maingame_stats_label3.config(text=self.stats['day'])
+            self.maingame_stats_label4.config(text=f"{self.stats['money']} PLN")
 
         if needs:
-            self.maingame_frame5_1_progressbar1["value"] = self.stats["thirst"]
-            self.maingame_frame5_1_progressbar2["value"] = self.stats["hunger"]
-            self.maingame_frame5_1_progressbar3["value"] = self.stats["fatigue"]
+            self.maingame_frame5_1_progressbar1["value"] = self.stats['thirst']
+            self.maingame_frame5_1_progressbar2["value"] = self.stats['hunger']
+            self.maingame_frame5_1_progressbar3["value"] = self.stats['fatigue']
 
-    def next_day(self, needs=True):
-        self.stats["day"] += 1
-        print(f"day = {self.stats['day']}")
+    def create_item_frames(self):
+        # Lista przedmiotów do wyświetlenia
+        items_to_display = ['water', 'baguette', 'creamery']
 
-        # TEMP before, after, difference i print
-        before = {"thirst": self.stats["thirst"], "hunger": self.stats["hunger"], "fatigue": self.stats["fatigue"]} 
+        row_frame = None  # Inicjalizacja zmiennej przechowującej bieżący rząd
 
-        if needs:
-            self.stats["thirst"] -= random.randint(30, 50)
-            self.stats["hunger"] -= random.randint(25, 45)
-            self.stats["fatigue"] += random.randint(20, 40)
-        elif self.stats["duty"]:
-            self.stats["thirst"] -= random.randint(30, 45)
-            self.stats["hunger"] -= random.randint(30, 45)
-            self.stats["fatigue"] -= self.calculate_fatigue_reduction()
+        for item in items_to_display:
+            quantity = self.stats.get(item, 0)  # Pobierz ilość, jeśli przedmiot nie istnieje, przyjmij 0
 
-        after = {"thirst": self.stats["thirst"], "hunger": self.stats["hunger"], "fatigue": self.stats["fatigue"]}
-        difference = {key: after[key] - before[key] for key in before}
-        print("Difference:", difference)
+            if quantity > 0:
+                # Sprawdź, czy istnieje rząd, jeśli nie, utwórz nowy
+                if row_frame is None or len(row_frame.winfo_children()) >= 2:
+                    row_frame = tk.Frame(self.maingame_frame5_2frame2, bg=self.color_1)
+                    row_frame.pack(side=tk.TOP, pady=5)
 
-        self.refresh_data()
+                # Ramka dla każdego przedmiotu
+                item_frame = tk.Frame(row_frame, bg=self.color_2, bd=0)
+                item_frame.pack(side=tk.LEFT, padx=2)
+
+                # Funkcja obsługująca kliknięcie na ramkę przedmiotu
+                click_handler = lambda event, item=item: self.use_item(item)
+                item_frame.bind("<Button-1>", click_handler)
+
+                # Nazwa przedmiotu
+                item_label = tk.Label(item_frame, text=item, font=self.font_p2i, bg=self.color_2, width=10)
+                item_label.pack()
+
+                # Zdjęcie przedmiotu (zakładam, że masz pliki obrazów o nazwach "water.jpg", "baguette.jpg", itd.)
+                image_path = f"data/img/{item}.jpg"
+                item_image = Image.open(image_path)
+                item_image = item_image.resize((32, 32), Image.LANCZOS)
+                item_photo = ImageTk.PhotoImage(item_image)
+
+                item_image_label = tk.Label(item_frame, image=item_photo)
+                item_image_label.image = item_photo
+                item_image_label.bind("<Button-1>", click_handler)
+                item_image_label.pack()
+
+                # Ilość przedmiotu
+                quantity_label = tk.Label(item_frame, text=f"Ilość: {quantity}", font=self.font_p2i, bg=self.color_2)
+                quantity_label.pack()
+
+    def use_item(self, item):
+        # Funkcja wywoływana po użyciu przedmiotu
+        quantity = self.stats.get(item, 0)
+
+        if quantity > 0:
+            # Użycie przedmiotu (tu możesz dodać logikę związaną z efektem użycia)
+            print(f"Użyto przedmiotu: {item}")
+
+            if item in self.ranges_hunger:
+                min_range, max_range = self.ranges_hunger[item]
+                random_value = random.randint(min_range, max_range)
+                self.stats['hunger'] += random_value
+            if item in self.ranges_water:
+                min_range, max_range = self.ranges_water[item]
+                random_value = random.randint(min_range, max_range)
+                self.stats['thirst'] += random_value
+            if item in self.ranges_fatigue:
+                min_range, max_range = self.ranges_fatigue[item]
+                random_value = random.randint(min_range, max_range)
+                self.stats['fatigue'] += random_value
+
+            # Zmniejszenie ilości przedmiotu
+            self.stats[item] -= 1
+
+            # Jeżeli ilość spadła do 0, usuń przedmiot z listy
+            if self.stats[item] == 0:
+                self.stats[item] = 0
+
+            # Zaktualizuj widok
+            self.update_item_frames()
+            self.death_detector()
+            self.refresh_data(False)
+            
+
+    def update_item_frames(self):
+        # Usuń stare ramki
+        for widget in self.maingame_frame5_2frame2.winfo_children():
+            widget.destroy()
+
+        # Wygeneruj na nowo ramki przedmiotów
+        self.create_item_frames()
+
+    def set_needs_event(self, key, text):
+        self.maingame_label5.config(text=f"Dzień {self.stats['day']}: {text}")
+        self.stats[key] = 20
+
+    def death_detector(self):
+        suspects = ['thirst', 'hunger', 'fatigue']
+
+        for key in suspects:
+            value = self.stats[key]
+            if value <= -20:
+                print(f"{key} is below -20: {value}")
+                self.dead_confirmed(key)
+                
+            if value >= 180:
+                print(f"{key} is above 180: {value}")
+                self.set_needs_event(key, "Pojechałeś do Rygi")
+
+    def dead_confirmed(self, death_reason):
+        self.stats['life'] = False
+        self.stats['deathr'] = death_reason
+        self.maingame_frame1.pack_forget()
+
+        for filename in self.last_save:
+            try:
+                os.remove(filename)
+                print(f"Plik {filename} został usunięty.")
+            except OSError as e:
+                print(f"Błąd podczas usuwania pliku: {e}")
+
+        self.maingame_death_frame5_label1.config(text=f"Zapisy usunięte: {self.last_save}")
+        self.maingame_death_frame2label2.config(text=self.stats['deathr'])
+        self.maingame_death_frame4_frame1_label2.config(text=self.stats['day'])
+        self.maingame_death_frame4_frame2_label2.config(text=self.stats['money'])
+        self.maingame_death_frame1.pack(fill=tk.BOTH, expand=True)
 
     def calculate_fatigue_reduction(self):
-        work_type = self.stats["work"]
-        return random.randint(*self.work_ranges_fatigue.get(work_type, (0, 0)))
+        work_id = self.stats['work']
+        return random.randint(*self.work_ranges_fatigue.get(work_id, (0, 0)))
+    
+    def calculate_payment_work(self):
+        work_id = self.stats['work']
+        return self.ranges_payment.get(work_id, 0)
 
+    def next_day(self, needs=True):
+        self.stats['day'] += 1
+        self.stats['lastpayment'] += 1
+        print(f"day = {self.stats['day']}")
+
+        # Needs reductions
+        if needs and self.stats['duty']:
+            self.stats['thirst'] -= random.randint(30, 50)
+            self.stats['hunger'] -= random.randint(25, 45)
+            self.stats['fatigue'] -= self.calculate_fatigue_reduction()
+        elif needs:
+            self.stats['thirst'] -= random.randint(30, 45)
+            self.stats['hunger'] -= random.randint(30, 45)
+            self.stats['fatigue'] += random.randint(20, 40)
+
+        # Giving payment
+        if self.stats['lastpayment'] >= 5:
+            self.stats['lastpayment'] = 0
+            self.stats['money'] += self.calculate_payment_work()
+        
+
+        self.refresh_data()
+        self.death_detector()
 
 
 
