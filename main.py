@@ -4,7 +4,6 @@ from PIL import Image, ImageTk
 import datetime
 import random
 import os
-import math
 
 class Game():
     def __init__(self, root):
@@ -47,7 +46,7 @@ class Game():
         self.show_start_gui()   # TEMP
 
     def create_start_gui(self):
-    # Main tab::
+    # Main tab:
         self.start_frame = tk.Frame(self.root_main, bg=self.color_1)
 
         self.start_logo_icon = tk.PhotoImage(file="data/img/przezyj.png")
@@ -159,7 +158,7 @@ class Game():
             "day": 0,
             "money": round(random.uniform(9.90, 21.90), 2),
             "work": 0,
-            "duty": True,
+            "duty": False,
             "intelligence": 10,
             "strength": 10,
             "stamina": 10,
@@ -197,7 +196,7 @@ class Game():
     def save_game(self):
         save_title = self.maingame_save_entry1.get()
         if not save_title:
-            self.maingame_save_label2.config(text="Wpisz tytuł zapisu")
+            self.maingame_save_label3.config(text="Wpisz tytuł zapisu")
             return
         
         n = 1
@@ -217,7 +216,7 @@ class Game():
 
         # Dodawanie zapisu do listboxa
         self.maingame_save_listbox.insert(tk.END, label)
-        self.maingame_save_label2.config(text=f"Zapisano save pod nazwą {save_title}")
+        self.maingame_save_label3.config(text=f"Zapisano save pod nazwą {save_title}")
         self.last_save.append(save_filename)
         print(self.last_save)
 
@@ -442,6 +441,8 @@ class Game():
         self.maingame_question_canvas.pack(padx=5, side=tk.RIGHT, anchor=tk.SE)
         
         # Binds
+        self.maingame_debug_canvas.bind("<Button-1>", lambda event: [
+                print(self.stats['duty'])])
         self.maingame_question_canvas.bind("<Button-1>", lambda event:
                 self.show_info_message("Tytuł", "Treść wiadomości"))    # TEMP konfiguracja wiadomości
         self.maingame_save_canvas.bind("<Button-1>", lambda event:
@@ -461,13 +462,13 @@ class Game():
         }
         
         # Items needs ranges:
-        self.ranges_hunger = {
-            "baguette": (35, 55),
-            "creamery": (20, 30)
-        }
         self.ranges_water = {
             "water": (35, 50),
             "creamery": (5, 10)
+        }
+        self.ranges_hunger = {
+            "baguette": (35, 55),
+            "creamery": (20, 30)
         }
         self.ranges_fatigue = {
             "creamery": (5, 10)
@@ -490,6 +491,25 @@ class Game():
             "newspaper": [5.99, 6.49, 6.55, 6.59, 6.69, 6.79, 6.99],
             "scratch card": [5.00]
         }
+        
+        # Skills requirements for job:
+        # id: (intelligence, strength, stamina)
+        self.jobs_require_ranges = {
+            0: (5, 5, 5),       # Bezrobotny
+            1: (10, 10, 10),    # Pakowacz na magazynie
+            2: (15, 20, 20),    # Magazynier
+            3: (20, 25, 20),    # Operator wózka widłowego
+            4: (45, 25, 20)     # Kierownik magazynu
+        }
+
+        # Names for jobs:
+        self.jobs_names = [
+            "Bezrobotny",
+            "Pakowacz na magazynie",
+            "Magazynier",
+            "Operator wózka widłowego",
+            "Kierownik magazynu"
+        ]
 
         self.product_day = self.stats['day'] - 1
 
@@ -502,25 +522,27 @@ class Game():
         self.maingame_save_frame1 = tk.Frame(self.maingame_frame0, bg=self.color_1)
         self.maingame_save_label1 = tk.Label(self.maingame_save_frame1, text="Zapisy gry", font=self.font_h2, fg=self.color_7, bg=self.color_1)
         self.maingame_save_listbox = tk.Listbox(self.maingame_save_frame1, selectmode=tk.SINGLE, width=55, height=5)
+        self.maingame_save_label2 = tk.Label(self.maingame_save_frame1, text="Wpisz nazwe zapisu:", font=self.font_p2i, fg=self.color_7, bg=self.color_1)
         self.maingame_save_entry1 = tk.Entry(self.maingame_save_frame1, validate="key", validatecommand=validate_cmd, width=40)
-        self.maingame_save_button1 = tk.Button(self.maingame_save_frame1, text="Zapisz", font=self.font_p1, bg=self.color_2, width=15, command=lambda:
+        self.maingame_save_button1 = tk.Button(self.maingame_save_frame1, text="Zapisz", font=self.font_p1, bg=self.color_2, width=14, command=lambda:
                 [self.save_game(), self.load_saves(self.maingame_save_listbox)])
-        self.maingame_save_button2 = tk.Button(self.maingame_save_frame1, text="Usuń", font=self.font_p1, bg=self.color_2, width=15, command=lambda:
-                [self.selected_delate_save(self.maingame_save_listbox, self.maingame_save_label2), self.load_saves(self.maingame_save_listbox)])
-        self.maingame_save_button3 = tk.Button(self.maingame_save_frame1, text="Wróć", font=self.font_p1, bg=self.color_2, width=15, command=lambda:
-                [self.hide_frame(self.maingame_save_frame1), self.maingame_frame1.pack(fill=tk.BOTH, expand=True, padx=3, pady=2), self.maingame_save_label2.config(text="")])
+        self.maingame_save_button2 = tk.Button(self.maingame_save_frame1, text="Usuń", font=self.font_p1, bg=self.color_2, width=14, command=lambda:
+                [self.selected_delate_save(self.maingame_save_listbox, self.maingame_save_label3), self.load_saves(self.maingame_save_listbox)])
+        self.maingame_save_button3 = tk.Button(self.maingame_save_frame1, text="Wróć", font=self.font_p1, bg=self.color_2, width=14, command=lambda:
+                [self.hide_frame(self.maingame_save_frame1), self.maingame_frame1.pack(fill=tk.BOTH, expand=True, padx=3, pady=2), self.maingame_save_label3.config(text="")])
         self.maingame_save_frame2 = tk.Frame(self.maingame_save_frame1, bg=self.color_1)
-        self.maingame_save_label2 = tk.Label(self.maingame_save_frame2, text="", font=self.font_p2, fg=self.color_7, bg=self.color_1, wraplength=270)
+        self.maingame_save_label3 = tk.Label(self.maingame_save_frame2, text="", font=self.font_p2, fg=self.color_7, bg=self.color_1, wraplength=270)
 
         self.maingame_save_frame1.pack(fill=tk.BOTH, expand=True, padx=3, pady=5)
         self.maingame_save_label1.pack()
         self.maingame_save_listbox.pack(padx=5, pady=5)
-        self.maingame_save_entry1.pack()
+        self.maingame_save_label2.pack()
+        self.maingame_save_entry1.pack(pady=3)
         self.maingame_save_button1.pack(ipady=5, pady=3)
         self.maingame_save_button2.pack(ipady=5, pady=3)
         self.maingame_save_button3.pack(ipady=5, pady=3)
         self.maingame_save_frame2.pack(fill=tk.BOTH, expand=True)
-        self.maingame_save_label2.pack(pady=5, side=tk.LEFT, anchor=tk.SW)
+        self.maingame_save_label3.pack(pady=5, side=tk.LEFT, anchor=tk.SW)
 
         self.maingame_save_question_canvas = tk.Canvas(self.maingame_save_frame2, bg=self.color_1, bd=0, highlightthickness=0, width=32, height=32)
         self.maingame_save_question_canvas.create_image(16, 16, anchor=tk.CENTER, image=self.question_icon)
@@ -704,6 +726,7 @@ class Game():
         if self.root_second_opened == 0:
             self.root_second = tk.Toplevel()
             self.root_second.title("Przeżyj!")
+            self.root_second.resizable(False, False) # TEMP
             self.components_root_second()
 
         self.root_second.protocol("WM_DELETE_WINDOW", self.root_x)
@@ -711,6 +734,7 @@ class Game():
 
         self.store_frame0.pack_forget()
         self.work_frame0.pack_forget()
+        self.work_find_frame0.pack_forget()
 
         if choice == 1:
             self.second_products()
@@ -720,22 +744,33 @@ class Game():
         
         if self.root_second_opened == 0:
             self.root_second_opened = choice
+
     def components_root_second(self):
         self.rootsec_main = tk.Frame(self.root_second, bg=self.color_1)
         self.rootsec_main.pack(fill=tk.BOTH, expand=True)
 
-    # Store tab:
+    # Store widnow:
 
         self.store_frame0 = tk.Frame(self.rootsec_main, bg=self.color_1)
-        self.store_label1 = tk.Label(self.store_frame0, text="Sklep", font=self.font_h2, fg=self.color_7, bg=self.color_1)
+        self.store_label1 = tk.Label(self.store_frame0, text="Sklep", font=self.font_h2, fg=self.color_7, bg=self.color_1, width=25)
         self.store_frame1 = tk.Frame(self.store_frame0, bg=self.color_1)
 
+        self.store_frame2 = tk.Frame(self.store_frame0, bg=self.color_1)
+        self.store_frame3 = tk.Frame(self.store_frame0, bg=self.color_1)
+        self.store_button1 = tk.Button(self.store_frame3, text="Dobry uczynek", font=self.font_p1, bg=self.color_2, width=14)
+        self.store_button2 = tk.Button(self.store_frame3, text="Zamknij", font=self.font_p1, bg=self.color_2, width=14, command=lambda:
+                [self.root_x()])
         self.store_frame4 = tk.Frame(self.store_frame0, bg=self.color_1)
-        self.store_label6 = tk.Label(self.store_frame4, text="commandlog", font=self.font_p2, fg=self.color_7, bg=self.color_1, wraplength=270)
+        self.store_label6 = tk.Label(self.store_frame4, text="Aby zakupić produkt, wybierz lewym przyciskiem myszy na zdjęcie", font=self.font_p2, fg=self.color_7, bg=self.color_1, wraplength=370)
 
         self.store_frame0.pack(fill=tk.BOTH, expand=True, padx=3, pady=5)
         self.store_label1.pack(pady=5)
         self.store_frame1.pack(fill=tk.BOTH, expand=True)
+
+        self.store_frame2.pack(fill=tk.BOTH, expand=True, ipady=10)
+        self.store_frame3.pack(fill=tk.BOTH, expand=True)
+        self.store_button1.pack(ipady=2, pady=3)
+        self.store_button2.pack(ipady=2, pady=3)
         self.store_frame4.pack(fill=tk.BOTH, expand=True)
         self.store_label6.pack(pady=5, side=tk.LEFT, anchor=tk.SW)
 
@@ -746,29 +781,91 @@ class Game():
 
         self.store_question_canvas.bind("<Button-1>", lambda event: self.show_info_message("Tytuł", "Treść wiadomości")) # TEMP konfiguracja wiadomości
 
-    # Work tab:
+    # Work window:
+    
+        # Work tab:
+        if self.stats['duty']:
+            self.duty_message2 = "Weź wolne"
+        else:
+            self.duty_message2 = "Idź do pracy"
+        if self.stats['work'] == 0:
+            self.duty_message1 = "Żebraj"
+        else:
+            self.duty_message1 = "Odbierz wypłatę"
+        
         self.work_frame0 = tk.Frame(self.rootsec_main, bg=self.color_1)
-        self.work_label1 = tk.Label(self.work_frame0, text="Praca", font=self.font_h2, fg=self.color_7, bg=self.color_1)
-        self.work_frame4 = tk.Frame(self.work_frame0, bg=self.color_1)
-        self.work_label6 = tk.Label(self.work_frame4, text="commandlog", font=self.font_p2, fg=self.color_7, bg=self.color_1, wraplength=270)
+        self.work_label1 = tk.Label(self.work_frame0, text="Praca", font=self.font_h2, fg=self.color_7, bg=self.color_1, width=25)
+        self.work_frame1 = tk.Frame(self.work_frame0, bg=self.color_1)
+        self.work_frame2 = tk.Frame(self.work_frame0, bg=self.color_1)
+        self.work_button1 = tk.Button(self.work_frame2, text="Znajdź pracę", font=self.font_p1, bg=self.color_2, width=14, command=lambda:
+                [self.hide_frame(self.work_frame0), self.work_find_frame0.pack(fill=tk.BOTH, expand=True, padx=3, pady=5)])
+        self.work_button2 = tk.Button(self.work_frame2, text="Umiejętności", font=self.font_p1, bg=self.color_2, width=14, command=lambda:
+                [self.wip(self.work_label2)])
+        self.work_button3 = tk.Button(self.work_frame2, text=self.duty_message1, font=self.font_p1, bg=self.color_2, width=14, command=lambda:
+                [self.wip(self.work_label2)])
+        self.work_button4 = tk.Button(self.work_frame2, text=self.duty_message2, font=self.font_p1, bg=self.color_2, width=14, command=lambda:
+                [self.duty_toggle(True, self.work_button4, self.work_label2)])
+        self.work_button5 = tk.Button(self.work_frame2, text="Zamknij", font=self.font_p1, bg=self.color_2, width=14, command=lambda:
+                [self.root_x()])
+        self.work_frame3 = tk.Frame(self.work_frame0, bg=self.color_1)
+        self.work_label2 = tk.Label(self.work_frame3, text="", font=self.font_p2, fg=self.color_7, bg=self.color_1, wraplength=270)
 
         self.work_frame0.pack(fill=tk.BOTH, expand=True, padx=3, pady=5)
         self.work_label1.pack(pady=5)
-        self.work_frame4.pack(fill=tk.BOTH, expand=True)
-        self.work_label6.pack(padx=40, pady=5, side=tk.LEFT, anchor=tk.SW)
+        self.work_frame1.pack(fill=tk.BOTH, expand=True, ipady=10)
+        self.work_frame2.pack(fill=tk.BOTH, expand=True)
+        self.work_button1.pack(ipady=2, pady=3)
+        self.work_button2.pack(ipady=2, pady=3)
+        self.work_button3.pack(ipady=2, pady=3)
+        self.work_button4.pack(ipady=2, pady=3)
+        self.work_button5.pack(ipady=2, pady=3)
+        self.work_frame3.pack(fill=tk.BOTH, expand=True)
+        self.work_label2.pack(pady=5, side=tk.LEFT, anchor=tk.SW)
 
-
-        self.work_question_canvas = tk.Canvas(self.work_frame4, bg=self.color_1, bd=0, highlightthickness=0, width=32, height=32)
+        self.work_question_canvas = tk.Canvas(self.work_frame3, bg=self.color_1, bd=0, highlightthickness=0, width=32, height=32)
         self.work_question_canvas.create_image(16, 16, anchor=tk.CENTER, image=self.question_icon)
         self.work_question_canvas.pack(pady=5, padx=5, side=tk.RIGHT, anchor=tk.SE)
 
         self.work_question_canvas.bind("<Button-1>", lambda event: self.show_info_message("Tytuł", "Treść wiadomości")) # TEMP konfiguracja wiadomości
+
+        # Find work tab:
+        self.work_find_frame0 = tk.Frame(self.rootsec_main, bg=self.color_1)
+        self.work_find_label1 = tk.Label(self.work_find_frame0, text="Aplikuj do pracy", font=self.font_h2, fg=self.color_7, bg=self.color_1, width=25)
+        self.work_find_frame1 = tk.Frame(self.work_find_frame0, bg=self.color_1)
+        self.work_find_frame2 = tk.Frame(self.work_find_frame0, bg=self.color_1)
+        self.work_find_button1 = tk.Button(self.work_find_frame2, text="Bezrobotny", font=self.font_p1, bg=self.color_2, width=14, command=lambda:
+                [self.apply_job(0, self.work_find_label2), self.duty_toggle(False, self.work_button4)])
+        self.work_find_button2 = tk.Button(self.work_find_frame2, text="Magazynier", font=self.font_p1, bg=self.color_2, width=14, command=lambda:
+                [self.apply_job(1, self.work_find_label2), self.duty_toggle(False)])
+        self.work_find_button3 = tk.Button(self.work_find_frame2, text="Wróć", font=self.font_p1, bg=self.color_2, width=14, command=lambda:
+                [self.hide_frame(self.work_find_frame0), self.work_frame0.pack(fill=tk.BOTH, expand=True, padx=3, pady=5)])
+        self.work_find_frame3 = tk.Frame(self.work_find_frame0, bg=self.color_1)
+        self.work_find_label2 = tk.Label(self.work_find_frame3, text="", font=self.font_p2, fg=self.color_7, bg=self.color_1, wraplength=270)
+
+
+        self.work_find_frame0.pack(fill=tk.BOTH, expand=True, padx=3, pady=5)
+        self.work_find_label1.pack(pady=5)
+        self.work_find_frame1.pack(fill=tk.BOTH, expand=True, ipady=10)
+        self.work_find_frame2.pack(fill=tk.BOTH, expand=True)
+        self.work_find_button1.pack(ipady=2, pady=3)
+        self.work_find_button2.pack(ipady=2, pady=3)
+        self.work_find_button3.pack(ipady=2, pady=3)
+        self.work_find_frame3.pack(fill=tk.BOTH, expand=True)
+        self.work_find_label2.pack(pady=5, side=tk.LEFT, anchor=tk.SW)
+
+        self.work_find_question_canvas = tk.Canvas(self.work_find_frame3, bg=self.color_1, bd=0, highlightthickness=0, width=32, height=32)
+        self.work_find_question_canvas.create_image(16, 16, anchor=tk.CENTER, image=self.question_icon)
+        self.work_find_question_canvas.pack(pady=5, padx=5, side=tk.RIGHT, anchor=tk.SE)
+        self.work_find_question_canvas.bind("<Button-1>", lambda event: self.show_info_message("Tytuł", "Treść wiadomości")) # TEMP konfiguracja wiadomości
+
+        self.work_find_frame0.pack_forget()
 
     def second_products(self):
         # New prices every day
         if not self.root_second_opened == 1 or not self.product_day == self.stats['day']:
             self.update_item_frames(self.store_frame1)
             self.create_second_products(self.store_frame1)
+            
 
     def second_products_price(self):
         if self.product_day == self.stats['day']:
@@ -814,7 +911,7 @@ class Game():
             item_label.pack()
             item_image_label.pack()
             quantity_label.pack()
-            item_frame.pack(side=tk.LEFT, padx=2)
+            item_frame.pack(fill=tk.BOTH, expand=True, side=tk.LEFT, padx=2)
 
             item_image_label.bind("<Button-1>", click_handler)
             item_frame.bind("<Button-1>", click_handler)
@@ -841,9 +938,57 @@ class Game():
 
         print(f"Kupiono: {item} {price}")
 
+    def wip(self, label):
+        label.config(text="Work In Progress")
+
+    def duty_toggle(self, change = True, button = None, label = None):
+        if self.stats['work'] == 0 and label:
+            label.config(text="Chcesz wziąść wolne, gdy jesteś bezrobotny?")
+            return
+        if self.stats['duty']:
+            if change: self.stats['duty'] = False
+            else: self.stats['duty'] = False
+            if label: label.config(text="Nie pójdziesz do pracy")
+            if button and change: self.duty_message2 = "Idź do pracy"
+        else:
+            if change: self.stats['duty'] = True
+            else: self.stats['duty'] = False
+            if label: label.config(text="Pójdziesz do pracy")
+            if button and change: self.duty_message2 = "Weź wolne"
+            
+        if self.stats['work'] == 0:
+            self.duty_message1 = "Żebraj"
+        else:
+            self.duty_message1 = "Odbierz wypłatę"
+
+        self.duty_buttons_refresh()
+
+    def duty_buttons_refresh(self):
+        self.work_button3.config(text=self.duty_message1)
+        self.work_button4.config(text=self.duty_message2)
+
+
+    def apply_job(self, choice, label):
+        label.config(text="Przetwarzanie...")
+
+        # Pobranie wymagań umiejętności dla wybranej pracy
+        requirements = self.jobs_require_ranges.get(choice)
+        
+        if requirements:
+            # Lista umiejętności, które gracz nie spełnia
+            lacking_skills = [skill for skill, requirement in zip(["intelligence", "strength", "stamina"], requirements) if self.stats[skill] < requirement]
+            
+            if not lacking_skills:
+                # Jeśli spełnia wymagania, ustaw pracę gracza na wartość choice
+                self.stats['work'] = choice
+                label.config(text=f"Pracujesz teraz jako: {self.jobs_names[choice]}")
+            else:
+                # Jeśli nie spełnia wymagań, wyświetl odpowiedni komunikat
+                message = "Nie masz wystarczających umiejętności do tej pracy. Brakuje: " + ", ".join(lacking_skills)
+                label.config(text=message)
 
     def death_detector(self):
-        suspects = ['thirst', 'hunger', 'fatigue']
+        suspects = ['thirst', 'hunger']
 
         for key in suspects:
             value = self.stats[key]
@@ -884,15 +1029,16 @@ class Game():
 
     def next_day(self, needs=True):
         self.stats['day'] += 1
-        self.stats['lastpayment'] += 1
+        a = 1       # TEMP boost from creamery B)
+        if self.stats['duty']: self.stats['lastpayment'] += a
         print(f"day = {self.stats['day']}")
 
         # Needs reductions
-        if needs and self.stats['duty']:
+        if needs and self.stats['duty'] == True:
             self.stats['thirst'] -= random.randint(30, 50)
             self.stats['hunger'] -= random.randint(25, 45)
             self.stats['fatigue'] -= self.calculate_fatigue_reduction()
-        elif needs:
+        elif needs and not self.stats['duty']:
             self.stats['thirst'] -= random.randint(30, 45)
             self.stats['hunger'] -= random.randint(30, 45)
             self.stats['fatigue'] += random.randint(20, 40)
@@ -904,7 +1050,8 @@ class Game():
 
         if self.root_second_opened == 1:
             self.second_products()
-        
+            self.store_label6.config(text="Aby zakupić produkt, wybierz lewym przyciskiem myszy na zdjęcie")
+
         self.refresh_stats()
         self.refresh_data()
         self.death_detector()
