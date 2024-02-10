@@ -4,17 +4,17 @@ from PIL import Image, ImageTk
 import datetime
 import random
 import os
+import math
 
 class Game():
-    def __init__(self, root, play):
+    def __init__(self, root):
     # Root etc.
         self.root = root
-        self.play = play
         self.root.title("Przeżyj!")
         self.root.configure(bg="#fff")
         self.root.minsize(270, 215)
-        # self.root.maxsize(650, 465)
-        # self.root.resizable(False, False) # TEMP
+        self.root.maxsize(650, 465)
+        self.root.resizable(False, False) # TEMP
 
         self.font_h1 = ("Segoe UI Black", 30)
         self.font_h2 = ("Segoe UI Semibold", 17)
@@ -39,6 +39,7 @@ class Game():
         self.root_main = tk.Frame(self.root, bg=self.color_1)
         self.root_main.pack(fill=tk.BOTH, expand=True)
         self.last_save = []
+        self.root_second_opened = 0
 
         # self.create_statistics() # TEMP
 
@@ -116,10 +117,14 @@ class Game():
         self.start_button4.pack(ipadx=11, ipady=5, pady=4)
 
         self.last_save = []
+        self.root_x()
         print(self.last_save)
 
     def show_info_message(self, title, message):
         messagebox.showinfo(title, message)
+
+    def capitalize_first_letter(self, text):
+        return text[0].upper() + text[1:]
 
     def set_label_wrap(self, event):
         wraplength = event.width-12
@@ -166,6 +171,7 @@ class Game():
             "baguette": 3,
             "creamery": 1,
             "newspaper": False,
+            "scratch card": 2,
             "lastpayment": 0,
             "deathr": "???"
         }
@@ -231,6 +237,7 @@ class Game():
 
         if not os.path.exists(filename):
             self.selected_load_save(selected_index + 1)
+            return
 
         # Wczytywanie gry z pliku
         with open(filename, "r") as file:
@@ -270,17 +277,23 @@ class Game():
         self.last_save.append(filename)
         print(self.last_save)
 
-    def selected_delate_save(self, listbox, command_log):
-        selected_index = listbox.curselection()
-        if not selected_index:
-            command_log.config(text="Wybierz zapis do usunięcia")
-            return
-        
-        command_log.config(text=f"Usunięto")
-        filename = f"saves/save{selected_index[0] + 1}.txt"
+    def selected_delate_save(self, listbox, command_log, index = None):
+        if not index:
+            selected_index = listbox.curselection()
+            if not selected_index:
+                command_log.config(text="Wybierz zapis do usunięcia")
+                return
+            else:
+                selected_index = selected_index[0]
+        else:
+            selected_index = index
 
-        # Remove the selected item from the listbox
-        self.load_listbox.delete(selected_index)
+        filename = f"saves/save{selected_index + 1}.txt"
+
+        if not os.path.exists(filename):
+            self.selected_delate_save(listbox, command_log, selected_index + 1)
+
+        listbox.delete(selected_index)
         os.remove(filename)
         command_log.config(text="Usunięto zapis")
 
@@ -349,8 +362,10 @@ class Game():
         self.maingame_frame6 = tk.Frame(self.maingame_frame4, bg=self.color_1)
         self.maingame_frame7 = tk.Frame(self.maingame_frame4, bg=self.color_1)
         self.maingame_button1 = tk.Button(self.maingame_frame6, text="Następny dzień", font=self.font_p1, bg=self.color_2, width=15, command=self.next_day)
-        self.maingame_button2 = tk.Button(self.maingame_frame6, text="Sklep", font=self.font_p1, bg=self.color_2, width=15)
-        self.maingame_button3 = tk.Button(self.maingame_frame6, text="Praca", font=self.font_p1, bg=self.color_2, width=15)
+        self.maingame_button2 = tk.Button(self.maingame_frame6, text="Sklep", font=self.font_p1, bg=self.color_2, width=15, command=lambda:
+                [self.create_root_second(1)])
+        self.maingame_button3 = tk.Button(self.maingame_frame6, text="Praca", font=self.font_p1, bg=self.color_2, width=15, command=lambda:
+                [self.create_root_second(2)])
         self.maingame_button4 = tk.Button(self.maingame_frame6, text="Statystyki", font=self.font_p1, bg=self.color_2, width=15)
         self.maingame_frame8 = tk.Frame(self.maingame_frame1, bg=self.color_1)
         self.maingame_label5 = tk.Label(self.maingame_frame8, text="", font=self.font_p2, fg=self.color_7, bg=self.color_1, wraplength=270)
@@ -436,6 +451,7 @@ class Game():
                 [self.hide_frame(self.maingame_frame0),
                  self.question("Czy na pewno chcesz wrócić do menu głównego?", (lambda: self.maingame_frame0.pack(fill=tk.BOTH, expand=True, padx=3, pady=5)), self.show_start_gui)])
 
+        # Payments ranges:
         self.ranges_payment = {
             0: 10,
             1: 20,
@@ -443,18 +459,21 @@ class Game():
             3: 40,
             4: 55
         }
+        
+        # Items needs ranges:
         self.ranges_hunger = {
-            'baguette': (35, 55),
-            'creamery': (20, 30)
+            "baguette": (35, 55),
+            "creamery": (20, 30)
         }
         self.ranges_water = {
-            'water': (35, 50),
-            'creamery': (5, 10)
+            "water": (35, 50),
+            "creamery": (5, 10)
         }
         self.ranges_fatigue = {
-            'creamery': (5, 10)
+            "creamery": (5, 10)
         }
 
+        # Work ranges fatigue:
         self.work_ranges_fatigue = {
             0: (0, 0),      # Bezrobotny
             1: (16, 22),    # Pakowacz na magazynie
@@ -463,6 +482,18 @@ class Game():
             4: (15, 19)     # Kierownik magazynu
         }
 
+        # Products prices:
+        self.products_prices = {
+            "water": [1.19, 1.49, 1.69, 1.75, 1.79, 1.85, 1.89, 1.95, 1.99, 2.09, 2.19],
+            "baguette": [2.99, 3.29, 3.35, 3.39, 3.45, 3.49, 3.55, 3.59, 3.65, 3.69, 3.75, 3.79, 3.89, 3.99],
+            "creamery": [5.99, 6.99, 7.29, 7.39, 7.59, 7.69, 7.79, 7.89, 7.99, 8.19, 8.29, 8.39, 8.99],
+            "newspaper": [5.99, 6.49, 6.55, 6.59, 6.69, 6.79, 6.99],
+            "scratch card": [5.00]
+        }
+
+        self.product_day = self.stats['day'] - 1
+
+        self.refresh_stats()
         self.refresh_data()
 
     # Save tab:
@@ -554,9 +585,19 @@ class Game():
 
         self.maingame_death_frame1.pack_forget()
 
+    def refresh_stats(self):
+        self.products_amounts = {
+            "water": 5,
+            "baguette": 5,
+            "creamery": 2,
+            "newspaper": 1,
+            "scratch card": 5
+        }
+
     # Refresh of data in the game window, called when it changes
     def refresh_data(self, stats=True, needs=True):
         if stats:
+            self.stats['money'] = round(self.stats['money'], 2)
             self.maingame_stats_label3.config(text=self.stats['day'])
             self.maingame_stats_label4.config(text=f"{self.stats['money']} PLN")
 
@@ -567,7 +608,7 @@ class Game():
 
     def create_item_frames(self):
         # Lista przedmiotów do wyświetlenia
-        items_to_display = ['water', 'baguette', 'creamery']
+        items_to_display = ['water', 'baguette', 'creamery', 'scratch card']
 
         row_frame = None  # Inicjalizacja zmiennej przechowującej bieżący rząd
 
@@ -636,22 +677,170 @@ class Game():
                 self.stats[item] = 0
 
             # Zaktualizuj widok
-            self.update_item_frames()
+            self.update_item_frames(self.maingame_frame5_2frame2, self.create_item_frames)
             self.death_detector()
             self.refresh_data(False)
             
 
-    def update_item_frames(self):
+    def update_item_frames(self, frame, func = None):
         # Usuń stare ramki
-        for widget in self.maingame_frame5_2frame2.winfo_children():
+        for widget in frame.winfo_children():
             widget.destroy()
 
         # Wygeneruj na nowo ramki przedmiotów
-        self.create_item_frames()
+        if func:
+            func()
 
-    def set_needs_event(self, key, text):
-        self.maingame_label5.config(text=f"Dzień {self.stats['day']}: {text}")
+    def set_needs_event(self, key, text2):
+        self.maingame_label5.config(text=f"Dzień {self.stats['day']}: {text2}")
         self.stats[key] = 20
+
+    def root_x(self):
+        if self.root_second_opened:
+            self.root_second_opened = 0
+            self.root_second.destroy()
+
+    def create_root_second(self, choice):
+        if self.root_second_opened == 0:
+            self.root_second = tk.Toplevel()
+            self.root_second.title("Przeżyj!")
+            self.components_root_second()
+
+        self.root_second.protocol("WM_DELETE_WINDOW", self.root_x)
+        
+
+        self.store_frame0.pack_forget()
+        self.work_frame0.pack_forget()
+
+        if choice == 1:
+            self.second_products()
+            self.store_frame0.pack(fill=tk.BOTH, expand=True, padx=3, pady=5)
+        if choice == 2:
+            self.work_frame0.pack(fill=tk.BOTH, expand=True, padx=3, pady=5)
+        
+        if self.root_second_opened == 0:
+            self.root_second_opened = choice
+    def components_root_second(self):
+        self.rootsec_main = tk.Frame(self.root_second, bg=self.color_1)
+        self.rootsec_main.pack(fill=tk.BOTH, expand=True)
+
+    # Store tab:
+
+        self.store_frame0 = tk.Frame(self.rootsec_main, bg=self.color_1)
+        self.store_label1 = tk.Label(self.store_frame0, text="Sklep", font=self.font_h2, fg=self.color_7, bg=self.color_1)
+        self.store_frame1 = tk.Frame(self.store_frame0, bg=self.color_1)
+
+        self.store_frame4 = tk.Frame(self.store_frame0, bg=self.color_1)
+        self.store_label6 = tk.Label(self.store_frame4, text="commandlog", font=self.font_p2, fg=self.color_7, bg=self.color_1, wraplength=270)
+
+        self.store_frame0.pack(fill=tk.BOTH, expand=True, padx=3, pady=5)
+        self.store_label1.pack(pady=5)
+        self.store_frame1.pack(fill=tk.BOTH, expand=True)
+        self.store_frame4.pack(fill=tk.BOTH, expand=True)
+        self.store_label6.pack(pady=5, side=tk.LEFT, anchor=tk.SW)
+
+
+        self.store_question_canvas = tk.Canvas(self.store_frame4, bg=self.color_1, bd=0, highlightthickness=0, width=32, height=32)
+        self.store_question_canvas.create_image(16, 16, anchor=tk.CENTER, image=self.question_icon)
+        self.store_question_canvas.pack(pady=5, padx=5, side=tk.RIGHT, anchor=tk.SE)
+
+        self.store_question_canvas.bind("<Button-1>", lambda event: self.show_info_message("Tytuł", "Treść wiadomości")) # TEMP konfiguracja wiadomości
+
+    # Work tab:
+        self.work_frame0 = tk.Frame(self.rootsec_main, bg=self.color_1)
+        self.work_label1 = tk.Label(self.work_frame0, text="Praca", font=self.font_h2, fg=self.color_7, bg=self.color_1)
+        self.work_frame4 = tk.Frame(self.work_frame0, bg=self.color_1)
+        self.work_label6 = tk.Label(self.work_frame4, text="commandlog", font=self.font_p2, fg=self.color_7, bg=self.color_1, wraplength=270)
+
+        self.work_frame0.pack(fill=tk.BOTH, expand=True, padx=3, pady=5)
+        self.work_label1.pack(pady=5)
+        self.work_frame4.pack(fill=tk.BOTH, expand=True)
+        self.work_label6.pack(padx=40, pady=5, side=tk.LEFT, anchor=tk.SW)
+
+
+        self.work_question_canvas = tk.Canvas(self.work_frame4, bg=self.color_1, bd=0, highlightthickness=0, width=32, height=32)
+        self.work_question_canvas.create_image(16, 16, anchor=tk.CENTER, image=self.question_icon)
+        self.work_question_canvas.pack(pady=5, padx=5, side=tk.RIGHT, anchor=tk.SE)
+
+        self.work_question_canvas.bind("<Button-1>", lambda event: self.show_info_message("Tytuł", "Treść wiadomości")) # TEMP konfiguracja wiadomości
+
+    def second_products(self):
+        # New prices every day
+        if not self.root_second_opened == 1 or not self.product_day == self.stats['day']:
+            self.update_item_frames(self.store_frame1)
+            self.create_second_products(self.store_frame1)
+
+    def second_products_price(self):
+        if self.product_day == self.stats['day']:
+            return
+
+        self.product_day = self.stats['day']
+
+        self.current_prices = {
+            "water": 5,
+            "baguette": 5,
+            "creamery": 5,
+            "newspaper": 5,
+            "scratch card": 5
+        }
+
+        for item in self.products_amounts.keys():
+            current_price = self.products_prices.get(item, [])
+            current_price = random.choice(current_price)
+            self.current_prices[item] = current_price
+            print(f"{item}: {current_price}")
+
+    def create_second_products(self, frame):
+        self.second_products_price()
+        for item in self.products_amounts.keys():
+
+            item_frame = tk.Frame(frame, bg=self.color_3, highlightbackground=self.color_8, highlightthickness=2)
+
+            click_handler = lambda event, item=item: self.buy_item(item)
+
+            item_label = tk.Label(item_frame, text=item, font=self.font_p2i, fg=self.color_7, bg=self.color_3, width=10)
+
+            image_path = f"data/img/{item}.jpg"
+            item_image = Image.open(image_path)
+            item_image = item_image.resize((32, 32), Image.LANCZOS)
+            item_photo = ImageTk.PhotoImage(item_image)
+
+            item_image_label = tk.Label(item_frame, image=item_photo)
+            item_image_label.image = item_photo
+
+            current_price = self.current_prices.get(item)
+            quantity_label = tk.Label(item_frame, text=f"{current_price} pln", font=self.font_p2i, fg=self.color_2, bg=self.color_3)
+
+            item_label.pack()
+            item_image_label.pack()
+            quantity_label.pack()
+            item_frame.pack(side=tk.LEFT, padx=2)
+
+            item_image_label.bind("<Button-1>", click_handler)
+            item_frame.bind("<Button-1>", click_handler)
+
+    def buy_item(self, item):
+        quantity = self.products_amounts.get(item, 0)
+        price = self.current_prices.get(item, 0)
+
+        if not quantity > 0:
+            item = self.capitalize_first_letter(item)
+            self.store_label6.config(text=f"{item} się skończył, wróć jutro.")
+            return
+        if self.stats['money'] < price:
+            self.store_label6.config(text=f"Nie stać Cię, na {item}.")
+            return
+
+        self.stats['money'] -= price
+        self.products_amounts[item] -= 1
+        self.stats[item] += 1
+        self.update_item_frames(self.maingame_frame5_2frame2, self.create_item_frames)
+        self.refresh_data(True, False)
+        
+        self.store_label6.config(text=f"Kupiłeś {item}")
+
+        print(f"Kupiono: {item} {price}")
+
 
     def death_detector(self):
         suspects = ['thirst', 'hunger', 'fatigue']
@@ -669,6 +858,7 @@ class Game():
     def dead_confirmed(self, death_reason):
         self.stats['life'] = False
         self.stats['deathr'] = death_reason
+        self.root_x()
         self.maingame_frame1.pack_forget()
 
         for filename in self.last_save:
@@ -711,14 +901,16 @@ class Game():
         if self.stats['lastpayment'] >= 5:
             self.stats['lastpayment'] = 0
             self.stats['money'] += self.calculate_payment_work()
-        
 
+        if self.root_second_opened == 1:
+            self.second_products()
+        
+        self.refresh_stats()
         self.refresh_data()
         self.death_detector()
 
 
 
 root = tk.Tk()
-play = True
-game = Game(root, play)
+game = Game(root)
 root.mainloop()
