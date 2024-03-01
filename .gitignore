@@ -3,6 +3,7 @@
 *.xcf
 *.txt
 *test
+*build
 *.blend
 *.jpg
 testing_place3 copy.py
