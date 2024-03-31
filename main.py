@@ -40,7 +40,7 @@ class Game():
         self.root_main.pack(fill=tk.BOTH, expand=True)
         self.last_save = []
         self.root_second_opened = 0
-        self.root_third_opened = 0
+        self.root_third_opened = False
 
         # self.create_statistics() # TEMP
 
@@ -169,10 +169,10 @@ class Game():
             return "NULL", "NULL"
 
     def new_game(self):
-        self.question("Czy napewno chcesz rozpocząć nową grę?", self.show_start_gui, self.create_statistics)
+        self.question(self.root_main, "Czy napewno chcesz rozpocząć nową grę?", self.show_start_gui, self.create_statistics)
         
-    def question(self, quest, prev_func, next_func):
-        self.question_frame = tk.Frame(self.root_main, bg=self.color_1)
+    def question(self, frame, quest, prev_func, next_func):
+        self.question_frame = tk.Frame(frame, bg=self.color_1)
         self.question_label1 = tk.Label(self.question_frame, text=quest, font=self.font_h3, fg=self.color_4, bg=self.color_1, wraplength=450)
         self.question_frame1 = tk.Frame(self.question_frame, bg=self.color_1)
         self.question_button1 = tk.Button(self.question_frame1, text="Nie", font=self.font_p1, bg=self.color_5, width=8, command=lambda:
@@ -183,8 +183,34 @@ class Game():
         self.question_frame.pack(padx=3, pady=10, expand=True)
         self.question_label1.pack(pady=20)
         self.question_frame1.pack(expand=True)
-        self.question_button1.pack(side=tk.LEFT, padx=5, ipady=4)
-        self.question_button2.pack(side=tk.LEFT, padx=5, ipady=4)
+        self.question_button1.pack(padx=5, ipady=4, side=tk.LEFT)
+        self.question_button2.pack(padx=5, ipady=4, side=tk.LEFT)
+
+    def small_question(self, frame, quest, next_func, *arg):
+        print("small_question")
+        label = self.find_label(frame)
+        if label:
+            label.config(text="")
+        
+        self.s_question_frame = tk.Frame(frame, bg=self.color_1)
+        self.s_question_label1 = tk.Label(self.s_question_frame, text=quest, font=self.font_p2, fg=self.color_4, bg=self.color_1, wraplength=450)
+        self.s_question_frame1 = tk.Frame(self.s_question_frame, bg=self.color_1)
+        self.s_question_button1 = tk.Button(self.s_question_frame1, text="Nie", font=self.font_p2, bg=self.color_5, width=5, command=lambda:
+                [self.hide_frame(self.s_question_frame)])
+        self.s_question_button2 = tk.Button(self.s_question_frame1, text="Tak", font=self.font_p2, bg=self.color_5, width=5, command=lambda:
+                [self.hide_frame(self.s_question_frame), next_func(*arg)])
+
+        self.s_question_frame.pack(expand=True)
+        self.s_question_label1.pack(pady=2)
+        self.s_question_frame1.pack(expand=True)
+        self.s_question_button1.pack(padx=5, side=tk.LEFT)
+        self.s_question_button2.pack(padx=5, side=tk.LEFT)
+
+    def find_label(self, frame):
+        for child in frame.winfo_children():  # Iteracja przez dzieci ramki
+            if isinstance(child, tk.Label):  # Sprawdzenie czy dziecko jest etykietą
+                return child  # Zwrócenie etykiety, jeśli zostanie znaleziona
+        return None  # Zwrócenie None, jeśli nie znajdziemy etykiety
 
     def create_statistics(self):
     # Statistics on the world in the game:
@@ -480,7 +506,7 @@ class Game():
         self.maingame_debug_canvas.bind("<Button-1>", lambda event: [
                 self.pre_work(self.stats["work"]), print(self.stats["internship"])])
         self.maingame_debug_canvas.bind("<Button-2>", lambda event: [
-                self.increase_stats(["intelligence","strength", "stamina"], 10), print(self.stats)])
+                self.increase_stats(["intelligence","strength", "stamina"], 10), print(self.stats), self.pre_work(2)])
         self.maingame_question_canvas.bind("<Button-1>", lambda event:
                 self.show_info_message("Informacja!", "W głównej części gry masz możliwość przechodzenia do następnego dnia, kontynuując swoją przygodę, zapewniania swoich podstawowych potrzeb, takich jak jedzenie, picie i odpoczynek, sprawdzania swoich statystyk, aby monitorować postęp, przechodzenia do różnych miejsc, takich jak praca czy sklep, aby wykonywać zadania lub kupować potrzebne przedmioty, oraz sprawdzania swojego ekwipunku, zarządzania przedmiotami i dostosowywania ich do zmieniających się sytuacji."))
         self.maingame_save_canvas.bind("<Button-1>", lambda event:
@@ -488,7 +514,7 @@ class Game():
                  self.maingame_save_frame1.pack(fill=tk.BOTH, expand=True, padx=3, pady=5), self.load_saves(self.maingame_save_listbox)])
         self.maingame_home_canvas.bind("<Button-1>", lambda event:
                 [self.hide_frame(self.maingame_frame0),
-                 self.question("Czy na pewno chcesz wrócić do menu głównego?", (lambda: self.maingame_frame0.pack(fill=tk.BOTH, expand=True, padx=3, pady=5)), self.show_start_gui)])
+                 self.question(self.root_main, "Czy na pewno chcesz wrócić do menu głównego?", (lambda: self.maingame_frame0.pack(fill=tk.BOTH, expand=True, padx=3, pady=5)), self.show_start_gui)])
 
         # Payments ranges:
         self.ranges_payment = {
@@ -647,7 +673,7 @@ class Game():
         }
 
     # Refresh of data in the game window, called when it changes
-    def refresh_data(self, stats=True, needs=True):
+    def refresh_data(self, stats=True, needs=True, skills=False):
         if stats:
             self.stats["money"] = round(self.stats["money"], 2)
             self.maingame_stats_label3.config(text=self.stats["day"])
@@ -657,6 +683,15 @@ class Game():
             self.adjust_progressbar(self.maingame_frame5_1_progressbar1, self.stats["thirst"])
             self.adjust_progressbar(self.maingame_frame5_1_progressbar2, self.stats["hunger"])
             self.adjust_progressbar(self.maingame_frame5_1_progressbar3, self.stats["fatigue"])
+        
+        if skills:
+            self.adjust_progressbar(self.work_skills_progressbar1, self.stats["intelligence"])
+            self.adjust_progressbar(self.work_skills_progressbar2, self.stats["strength"])
+            self.adjust_progressbar(self.work_skills_progressbar3, self.stats["stamina"])
+            if self.stats["duty"]:
+                self.work_skills_label5_a.config(text="☑")
+            else: 
+                self.work_skills_label5_a.config(text="❎")
 
     def adjust_progressbar(self, progressbar, target_value):
         prev_value = progressbar["value"]
@@ -718,8 +753,8 @@ class Game():
         quantity = self.stats.get(item, 0)
         
         events = {
-            "newspaper": lambda: self.create_root_thrid(),
-            "scratch card": lambda: self.create_root_thrid()
+            # "newspaper": lambda: self.create_root_thrid(), # TEMP GAZETA
+            "scratch card": lambda: self.pre_thrid(item)
         }
 
         if quantity > 0:
@@ -739,7 +774,6 @@ class Game():
                 random_value = random.randint(min_range, max_range)
                 self.stats["fatigue"] += random_value
             if item in events:
-                print("test")
                 events[item]()
 
 
@@ -753,8 +787,8 @@ class Game():
             # Zaktualizuj widok
             if refresh:
                 self.update_item_frames(self.maingame_frame5_2frame2, self.create_item_frames)
+                self.refresh_data(False)
             self.death_detector()
-            self.refresh_data(False)
 
     def update_item_frames(self, frame, func = None):
         # Usuń stare ramki
@@ -788,6 +822,7 @@ class Game():
         self.store_frame0.pack_forget()
         self.work_frame0.pack_forget()
         self.work_find_frame0.pack_forget()
+        self.work_skills_frame0.pack_forget()
 
         if choice == 1:
             self.second_products()
@@ -863,7 +898,7 @@ class Game():
         self.work_button1 = tk.Button(self.work_frame3, text="Znajdź pracę", font=self.font_p1, bg=self.color_5, width=14, command=lambda:
                 [self.intermediary(self.work_label2, "", self.hide_frame, self.work_frame0), self.work_find_frame0.pack(fill=tk.BOTH, expand=True, padx=3, pady=5)])
         self.work_button2 = tk.Button(self.work_frame3, text="Umiejętności", font=self.font_p1, bg=self.color_5, width=14, command=lambda:
-                [self.intermediary(self.work_label2, "", self.wip, self.work_label2)])  # TEMP self.wip
+                [self.intermediary(self.work_label2, "", self.hide_frame, self.work_frame0), self.work_skills_frame0.pack(fill=tk.BOTH, expand=True, padx=3, pady=5), self.refresh_data(False, False, True)])  # TEMP umiejętności
         self.work_button3 = tk.Button(self.work_frame3, text=self.duty_message1, font=self.font_p1, bg=self.color_5, width=14, command=self.duty_command1)  # TEMP self.wip
         self.work_button4 = tk.Button(self.work_frame3, text=self.duty_message2, font=self.font_p1, bg=self.color_5, width=14, command=lambda:
                 [self.duty_toggle(True, self.work_button4, self.work_label2)])
@@ -902,15 +937,16 @@ class Game():
         self.work_question_canvas.bind("<Button-1>", lambda event: self.show_info_message("Praca!", "W oknie pracy możesz podjąć zatrudnienie. Pamiętaj, że nie wszędzie z niskimi umiejętnościami się dostaniesz, a szef nie awansuje cię, jeśli nie wykonujesz pracy perfekcyjnie. Gdy nie masz pracy, raz dziennie możesz żebrać, zdobywając pieniądze i czasem jakieś przedmioty. Wypłatę możesz odebrać co piąty dzień pracy, co wiąże się z interaktywnym zadaniem do wykonania! Należy pamiętać, że jeśli poprosisz szefa o wcześniejszą wypłatę, otrzymasz mniejsze wynagrodzenie. Wykonanie interaktywnego zadania dodaje bonus do wypłaty oraz zwiększa szanse na awans.")) # TEMP konfiguracja wiadomości
 
         self.work_stats_refresh(self.stats["work"])
+
         # Find work tab:
         self.work_find_frame0 = tk.Frame(self.rootsec_main, bg=self.color_1)
         self.work_find_label1 = tk.Label(self.work_find_frame0, text="Aplikuj do pracy", font=self.font_h2, fg=self.color_4, bg=self.color_1, width=25)
         self.work_find_frame1 = tk.Frame(self.work_find_frame0, bg=self.color_1)
         self.work_find_frame2 = tk.Frame(self.work_find_frame0, bg=self.color_1)
         self.work_find_button1 = tk.Button(self.work_find_frame2, text="Bezrobotny", font=self.font_p1, bg=self.color_5, width=14, command=lambda:
-                [self.apply_job(0, self.work_find_label2), self.duty_toggle(False, self.work_button4)])
+                [self.small_question(self.work_find_frame3, "Czy napewno chcesz zostać bezrobotnym?", self.apply_job, 0, self.work_find_label2), self.duty_toggle(False, self.work_button4)])
         self.work_find_button2 = tk.Button(self.work_find_frame2, text="Magazynier", font=self.font_p1, bg=self.color_5, width=14, command=lambda:
-                [self.apply_job(1, self.work_find_label2), self.duty_toggle(False)])
+                [self.small_question(self.work_find_frame3, "Czy napewno chcesz się zatrudnić jako magazynier?", self.apply_job, 1, self.work_find_label2), self.duty_toggle(False)])
         self.work_find_button3 = tk.Button(self.work_find_frame2, text="Wróć", font=self.font_p1, bg=self.color_5, width=14, command=lambda:
                 [self.hide_frame(self.work_find_frame0), self.work_frame0.pack(fill=tk.BOTH, expand=True, padx=3, pady=5)])
         self.work_find_frame3 = tk.Frame(self.work_find_frame0, bg=self.color_1)
@@ -933,6 +969,74 @@ class Game():
         self.work_find_question_canvas.bind("<Button-1>", lambda event: self.show_info_message("Aplikuj do pracy!", "W oknie aplikowania do pracy pamiętaj, że niektóre stanowiska wymagają większych umiejętności niż tylko pisanie i czytanie. Dlatego z czasem konieczne będzie podjęcie dodatkowej nauki, aby zdobyć wymagane kwalifikacje i awansować w karierze.")) # TEMP konfiguracja wiadomości
 
         self.work_find_frame0.pack_forget()
+        
+        # Skills work tab:
+        self.work_skills_frame0 = tk.Frame(self.rootsec_main, bg=self.color_1)
+        self.work_skills_label1 = tk.Label(self.work_skills_frame0, text="Twoje umiejętności☑❎", font=self.font_h2, fg=self.color_4, bg=self.color_1, width=25)
+
+        self.work_skills_frame1 = tk.Frame(self.work_skills_frame0, bg=self.color_1)
+        self.work_skills_label2 = tk.Label(self.work_skills_frame1, text="Inteligencja", font=self.font_p2i, fg=self.color_5, bg=self.color_1)
+        self.work_skills_progressbar1 = ttk.Progressbar(self.work_skills_frame1, orient="horizontal", mode="determinate", length=100, maximum=100)
+        self.work_skills_label3 = tk.Label(self.work_skills_frame1, text="Siła", font=self.font_p2i, fg=self.color_5, bg=self.color_1)
+        self.work_skills_progressbar2 = ttk.Progressbar(self.work_skills_frame1, orient="horizontal", mode="determinate", length=100, maximum=100)
+        self.work_skills_label4 = tk.Label(self.work_skills_frame1, text="Stamina", font=self.font_p2i, fg=self.color_5, bg=self.color_1)
+        self.work_skills_empty1 = tk.Label(self.work_skills_frame1, text="", bg=self.color_1)
+        self.work_skills_progressbar3 = ttk.Progressbar(self.work_skills_frame1, orient="horizontal", mode="determinate", length=100, maximum=100)
+        self.work_skills_label5 = tk.Label(self.work_skills_frame1, text="Prawo jazdy?", font=self.font_p2i, fg=self.color_5, bg=self.color_1)
+        self.work_skills_label5_a = tk.Label(self.work_skills_frame1, text="❎", font=self.font_p1b, fg=self.color_5, bg=self.color_1)
+        self.work_skills_label6 = tk.Label(self.work_skills_frame1, text="Kurs zarządzania?", font=self.font_p2i, fg=self.color_5, bg=self.color_1)
+        self.work_skills_label6_a = tk.Label(self.work_skills_frame1, text="❎", font=self.font_p1b, fg=self.color_5, bg=self.color_1)
+        self.work_skills_label7 = tk.Label(self.work_skills_frame1, text="WIP", font=self.font_p2i, fg=self.color_5, bg=self.color_1)
+        self.work_skills_label7_a = tk.Label(self.work_skills_frame1, text="❎", font=self.font_p1b, fg=self.color_5, bg=self.color_1)
+        self.work_skills_empty2 = tk.Label(self.work_skills_frame1, text="", bg=self.color_1)
+
+        self.work_skills_button1 = tk.Button(self.work_skills_frame0, text="Wróć", font=self.font_p1, bg=self.color_5, width=14, command=lambda:
+                [self.hide_frame(self.work_skills_frame0), self.work_frame0.pack(fill=tk.BOTH, expand=True, padx=3, pady=5)])
+        
+        self.work_skills_frame2 = tk.Frame(self.work_skills_frame0, bg=self.color_1)
+        self.work_skills_label8 = tk.Label(self.work_skills_frame2, text="", font=self.font_p2, fg=self.color_4, bg=self.color_1, wraplength=270)
+
+        self.work_skills_frame0.pack(fill=tk.BOTH, expand=True, padx=3, pady=5)
+        self.work_skills_label1.pack(pady=5)
+
+        self.work_skills_frame1.pack(fill=tk.BOTH, expand=True)
+        self.work_skills_label2.grid(row=0, column=0)
+        self.work_skills_progressbar1.grid(row=1, column=0, padx=10)
+        self.work_skills_label3.grid(row=0, column=1)
+        self.work_skills_progressbar2.grid(row=1, column=1, padx=10)
+        self.work_skills_label4.grid(row=0, column=2)
+        self.work_skills_progressbar3.grid(row=1, column=2, padx=10)
+        self.work_skills_empty1.grid(row=2, column=0, columnspan=3)
+
+        self.work_skills_label5.grid(row=3, column=0)
+        self.work_skills_label5_a.grid(row=4, column=0)
+        self.work_skills_label6.grid(row=3, column=1)
+        self.work_skills_label6_a.grid(row=4, column=1)
+        self.work_skills_label7.grid(row=3, column=2)
+        self.work_skills_label7_a.grid(row=4, column=2)
+        self.work_skills_empty2.grid(row=5, column=0, columnspan=3)
+        
+        self.work_skills_button1.pack(ipady=2)
+        self.work_skills_frame2.pack(fill=tk.BOTH, expand=True)
+        self.work_skills_label8.pack(pady=5, side=tk.LEFT, anchor=tk.SW)
+
+        self.work_skills_question_canvas = tk.Canvas(self.work_skills_frame2, bg=self.color_1, bd=0, highlightthickness=0, width=32, height=32)
+        self.work_skills_question_canvas.create_image(16, 16, anchor=tk.CENTER, image=self.question_icon)
+        self.work_skills_question_canvas.pack(pady=5, padx=5, side=tk.RIGHT, anchor=tk.SE)
+        self.work_skills_question_canvas.bind("<Button-1>", lambda event: self.show_info_message("WIP!", "WIP")) # TEMP konfiguracja wiadomości
+
+        self.work_skills_label2.bind("<Button-1>", lambda event: self.increase_stats(["intelligence"], 1, True))
+        self.work_skills_progressbar1.bind("<Button-1>", lambda event: self.increase_stats(["intelligence"], 1, True))
+        self.work_skills_label3.bind("<Button-1>", lambda event: self.increase_stats(["strength"], 1, True))
+        self.work_skills_progressbar2.bind("<Button-1>", lambda event: self.increase_stats(["strength"], 1, True))
+        self.work_skills_label4.bind("<Button-1>", lambda event: self.increase_stats(["stamina"], 1, True))
+        self.work_skills_progressbar3.bind("<Button-1>", lambda event: self.increase_stats(["stamina"], 1, True))
+
+        for i in range(3):
+            self.work_skills_frame1.grid_columnconfigure(i, weight=1)
+
+
+        self.work_skills_frame0.pack_forget()
 
     def second_products(self):
         # New prices every day
@@ -1025,26 +1129,13 @@ class Game():
     def wip(self, label):
         label.config(text="Work In Progress")
 
-    def increase_stats(self, stats, value):
+    def increase_stats(self, stats, value, minus_fatigue = None):
         for stat in stats:
             self.stats[stat] += value
-
-    def create_root_thrid(self):
-        # Disabling interaction with other windows
-        self.root.attributes("-disabled", True)
-        if not self.root_second_opened == 0:
-            self.root_second.attributes("-disabled", True)
-
-        self.root_third_opened = True
-        self.root_third_opened = id
-        self.root_third = tk.Toplevel()
-        self.root_third.resizable(False, False)
-        
-        self.rootthrid_main = tk.Frame(self.root_third, bg=self.color_1)
-        self.rootthrid_frame0 = tk.Frame(self.rootthrid_main, bg=self.color_1)
-
-        self.rootthrid_main.pack(fill=tk.BOTH, expand=True)
-        self.rootthrid_frame0.pack(fill=tk.BOTH, expand=True, padx=3, pady=5)
+        if minus_fatigue:
+            self.stats["fatigue"] -= random.randint(7,13)
+            self.refresh_data(False, True, True)
+            self.death_detector()
 
     def duty_toggle(self, change = True, button = None, label = None):
         if self.stats["work"] == 0 and label:
@@ -1100,6 +1191,7 @@ class Game():
 
     def calculate_promotion_chance(self):
         promotion_chances = {
+            1: 15,
             2: 20,
             3: 50,
             4: 60,
@@ -1175,9 +1267,9 @@ class Game():
                 message = "Nie masz wystarczających umiejętności do tej pracy. Brakuje: " + ", ".join(lacking_skills)
                 label.config(text=message)
 
-    def escape_from_work(self):
-        self.intermediary(self.maingame_label5, f"Dzień {self.stats['day']}: Nie dostaniesz bonusu bo uciekłeś z pracy.")
-        self.end_work(False)
+    def emergency_from_work(self, id, content):
+        self.intermediary(self.maingame_label5, f"Dzień {self.stats['day']}: {content}")
+        self.end_work(False, id)
 
     def pre_work(self, id):
         work, position = self.id_name_job(id)
@@ -1186,52 +1278,46 @@ class Game():
         work_descriptions = [
             "NULL",
             "Twoim zadaniem jest klikanie lewym przyciskiem myszy na paczkę, aby ją spakować. Zakończ swoją zmianę, zdobywając bonus do wypłaty po spakowaniu 10 paczek!",
-            "przeciąganie paczki",
+            "Twoim zadaniem jest dostarczenie paczek porozrzucanych po planszy w wyznaczoną strefę. Zakończ swoją zmianę, zdobywając bonus do wypłaty po odstawieniu 12 paczek!",
             "jazda od punktu do punktu paleciakiem",
             "klocki jak na human benchmark"
         ]
         
-        self.create_root_thrid()        
-        self.root_third.title(f"{position}!")
-        self.root_third.protocol("WM_DELETE_WINDOW", self.escape_from_work)
+        self.minigame = MiniGame(self)
 
-        self.rootthrid_frame1 = tk.Frame(self.rootthrid_frame0, bg=self.color_1)
+        self.minigame.root_third.title(f"{position}!")
+        self.minigame.root_third.protocol("WM_DELETE_WINDOW", lambda: self.emergency_from_work(id, "Nie dostaniesz bonusu bo uciekłeś z pracy."))
+
+        self.rootthrid_frame1 = tk.Frame(self.minigame.rootthrid_frame0, bg=self.color_1)
         self.rootthrid_label1 = tk.Label(self.rootthrid_frame1, text=f"{position}!", font=self.font_h2, fg=self.color_4, bg=self.color_1)
         self.rootthrid_label2 = tk.Label(self.rootthrid_frame1, text=work_descriptions[id], font=self.font_p2, fg=self.color_4, bg=self.color_1, wraplength=400)
         self.rootthrid_button1 = tk.Button(self.rootthrid_frame1, text="Dalej", font=self.font_p1, bg=self.color_5, width=12, command=lambda:
                 self.work_next(self.rootthrid_frame2))
-        self.rootthrid_frame2 = tk.Frame(self.rootthrid_frame0, bg=self.color_1)
-
-        self.minigame = MiniGame()
+        self.rootthrid_frame2 = tk.Frame(self.minigame.rootthrid_frame0, bg=self.color_1)
 
         if id == 1:
-            self.minigame.work_packing(self, self.rootthrid_frame2)
+            self.minigame.work_packing(self.rootthrid_frame2)
+        if id == 2:
+            self.minigame.work_moving_box(self.rootthrid_frame2)
 
         self.rootthrid_frame1.pack(fill=tk.BOTH, expand=True)
         self.rootthrid_label1.pack(pady=5)
         self.rootthrid_label2.pack(pady=5)
         self.rootthrid_button1.pack(pady=5)
-
-    def work_set(self): # TEMP
-        self.end_work(True)
         
     def work_next(self, frame):
         self.rootthrid_frame1.pack_forget()
         frame.pack(fill=tk.BOTH, expand=True)
 
-    def end_work(self, done):
+    def end_work(self, done, id):
         if done:
-            self.stats["money"] += round(1.5 * self.calculate_payment_work(), 2)
+            self.stats["money"] += round(1.5 * self.calculate_payment_work(id), 2)
             self.try_promotion()
         else:
-            self.stats["money"] += self.calculate_payment_work()
+            self.stats["money"] += self.calculate_payment_work(id)
         self.refresh_data(True, False)
-        
-        self.root.attributes("-disabled", False)
-        if not self.root_second_opened == 0:
-            self.root_second.attributes("-disabled", False)
-        self.root_third_opened = False
-        self.root_third.destroy()
+
+        self.minigame.activation()
 
         # Chance draw for promotion (from 2 internship 20%, up to 4 = 80%)
         self.stats["internship"] += 1
@@ -1273,7 +1359,7 @@ class Game():
         self.root_x()
         if self.root_third_opened:
             self.root_third_opened = False
-            self.root_third.destroy()
+            self.minigame.root_third.destroy()
         self.maingame_frame1.pack_forget()
 
         for filename in self.last_save:
@@ -1293,9 +1379,10 @@ class Game():
         work_id = self.stats["work"]
         return random.randint(*self.work_ranges_fatigue.get(work_id, (0, 0)))
     
-    def calculate_payment_work(self):
-        work_id = self.stats["work"]
-        return self.ranges_payment.get(work_id, 0)
+    def calculate_payment_work(self, id = None):
+        if not id:
+            id = self.stats["work"]
+        return self.ranges_payment.get(id, 0)
 
     def next_day(self, needs=True):
         self.stats["day"] += 1
@@ -1328,13 +1415,130 @@ class Game():
             self.stats["lastpayment"] = 0
             self.pre_work(self.stats["work"])
 
+    def pre_thrid(self, value):
+        self.minigame = MiniGame(self)
 
         if value == "scratch card":
             self.minigame.scratch_card()
 
 class MiniGame():
-    def work_packing(self, main, frame):
+    def __init__(self, main):
+        self.sync(main)
+        if not self.main.root_third_opened:
+            self.create_root_thrid()
+
+    def sync(self, main):
         self.main = main
+
+    def deactivation(self):
+        # Disabling interaction with other windows
+        self.main.root.attributes("-disabled", True)
+        if not self.main.root_second_opened == 0:
+            self.main.root_second.attributes("-disabled", True)
+
+    def activation(self):
+        # Disabling interaction with other windows
+        self.main.root.attributes("-disabled", False)
+        if not self.main.root_second_opened == 0:
+            self.main.root_second.attributes("-disabled", False)
+        self.main.root_third_opened = False
+        self.root_third.destroy()
+
+    # Scratch card system:
+    def scratch_card(self):
+        print("scratch_card()")
+        self.rootthrid_frame2 = tk.Frame(self.rootthrid_frame0, bg=self.main.color_1)
+        self.rootthrid_frame2.pack(fill=tk.BOTH, expand=True)
+        self.sc_click_count = 0
+        self.root_third.protocol("WM_DELETE_WINDOW", lambda: self.sc_get_result_text(True))
+
+        self.sc_prizes = {
+            1: ["Gratulacje! Wygrałeś 50 zł!", 50],
+            2: ["Super! Nic nie wygrałeś", 0],
+            3: ["Brawo! Wygrałeś 10 zł!", 10],
+            4: ["Niesamowite! Wygrałeś 5 zł!", 5],
+            5: ["Świetnie! Wygrałeś 2.5 zł!", 2.5],
+            6: ["Fantastycznie! Wygrałeś 7 zł!", 7],
+            7: ["Doskonale! Wygrałeś 9 zł!", 9],
+            8: ["Wspaniale! Wygrałeś 20 zł!", 20],
+            9: ["Rewelacyjnie! Wygrałeś 14 zł!", 14],
+            10: ["Nie do wiary! Wygrałeś 11 zł!", 11],
+            11: ["Niebywałe! Wygrałeś 200 zł!", 200]
+        }
+
+        self.sc_lose_texts = [
+            "Niestety, nie wygrałeś nic tym razem.",
+            "Spróbuj szczęścia ponownie!",
+            "Może następnym razem będzie lepiej.",
+            "Nie poddawaj się! Szansa na wygraną jest blisko.",
+            "Trzymaj się! Warto próbować, nawet jeśli czasami przegrywasz.",
+            "Zachowaj optymizm! Każda gra to szansa na sukces.",
+            "Wygrana może być tylko kwestią czasu! Trzymaj się!",
+            "Każdy hazardzista odchodzi przed wielką wygraną!"
+        ]
+
+
+        sc_image = Image.open("data/img/Pszemo_Money.png")
+        sc_image = sc_image.resize((400, 400), Image.LANCZOS)
+        self.sc_photo = ImageTk.PhotoImage(sc_image)
+
+        self.sc_image_label = tk.Label(self.rootthrid_frame2, bg=self.main.color_1)
+        self.sc_image_label.pack()
+
+        self.sc_canvas = tk.Canvas(self.sc_image_label, width=400, height=400, bd=0, highlightthickness=0)
+        self.sc_canvas.pack()
+
+        # Umieść zdjęcie na kanwie
+        self.sc_canvas.create_image(0, 0, anchor=tk.NW, image=self.sc_photo)
+
+        # Umieść napis na zdjęciu
+        self.sc_label1 = self.sc_canvas.create_text(200, 240, text="", width=280, font=self.main.font_p1, fill="black", justify=tk.CENTER)
+
+        self.sc_label2 = tk.Label(self.rootthrid_frame2, text="Klikaj na zdrapkę, aby otworzyć!", font=self.main.font_p2, fg=self.main.color_4, bg=self.main.color_1, wraplength=270)
+        self.sc_label2.pack(pady=5, side=tk.LEFT, anchor=tk.SW)
+
+        self.sc_canvas.bind("<Button-1>", self.sc_click_handler)
+        
+    def sc_click_handler(self, event):
+        self.sc_click_count += 1
+        if self.sc_click_count == 5:
+            self.sc_canvas.itemconfig(self.sc_label1, text=self.sc_get_result_text())
+        elif self.sc_click_count > 5:
+            self.activation()
+
+    def sc_get_result_text(self, handle = None):
+        if random.random() < 0.2:
+            prize_id = random.choice(list(self.sc_prizes.keys()))
+            print(f"WYGRANA\n{prize_id}")
+            prize_text, sc_prize_amount= self.sc_prizes[prize_id]
+            self.sc_win(sc_prize_amount, handle)
+            return f"{prize_text}"
+        else:
+            return random.choice(self.sc_lose_texts)
+
+    def sc_win(self, value, skip = None):
+        self.main.stats["money"] += value
+        self.main.refresh_data(True, False)
+        if skip:
+            self.activation()
+
+    def create_root_thrid(self):
+        print("create_root_thrid()")
+        self.deactivation()
+        
+        self.main.root_third_opened = True
+        self.root_third = tk.Toplevel()
+        self.root_third.resizable(False, False)
+        
+        self.rootthrid_main = tk.Frame(self.root_third, bg=self.main.color_1)
+        self.rootthrid_frame0 = tk.Frame(self.rootthrid_main, bg=self.main.color_1)
+
+        self.rootthrid_main.pack(fill=tk.BOTH, expand=True)
+        self.rootthrid_frame0.pack(fill=tk.BOTH, expand=True, padx=3, pady=5)
+        
+    # Box packing system:
+    def work_packing(self, frame):
+        self.work_job = 1
         self.rootthrid_frame2 = frame
         self.work_packing_images = [
             "data/img/pack1.png",
@@ -1357,7 +1561,7 @@ class MiniGame():
         self.work_packing_update_image()
         
         self.work_packing_canvas.bind("<Button-1>", lambda event: self.work_packing_pack_box())
-        self.work_packing_frame1.bind("<Button-2>", lambda event: self.work_packing_cheat())
+        self.work_packing_frame1.bind("<Button-2>", lambda event: self.work_end())
         
         self.packed_boxes = 0
 
@@ -1365,10 +1569,6 @@ class MiniGame():
         self.work_packing_photo = self.work_packing_images[self.work_packing_index]
         self.work_packing_canvas.delete("all")  # Usunięcie poprzedniego obrazu
         self.work_packing_canvas.create_image(75, 75, anchor=tk.CENTER, image=self.work_packing_photo)
-
-    def work_packing_cheat(self):
-        self.packed_boxes += 10
-        self.work_packing_pack_box()
 
     def work_packing_pack_box(self):
         self.work_packing_index += 1
@@ -1378,11 +1578,76 @@ class MiniGame():
             self.work_packing_label1.config(text=f"Paczek spakowanych: {self.packed_boxes}/10")
 
         if self.packed_boxes >= 10:
-            self.main.end_work(True)
+            self.work_end()
             return
 
         self.work_packing_update_image()
 
+    # Moving box system:
+    def work_moving_box(self, frame):
+        self.work_job = 2
+        self.rootthrid_frame2 = frame
+        
+        self.work_moving_box_frame1 = tk.Frame(self.rootthrid_frame2, bg=self.main.color_1, width=10, height=50)
+        self.work_moving_box_label1 = tk.Label(self.rootthrid_frame2, text="Paczek dostarczonych: 0/12", font=self.main.font_p1, fg=self.main.color_4, bg=self.main.color_1)
+
+        self.work_moving_box_frame1.pack(side=tk.LEFT)
+        self.work_moving_box_label1.pack(padx=10, pady=3)
+
+        self.work_moving_box_canvas = tk.Canvas(self.rootthrid_frame2, width=500, height=400, bg=self.main.color_3)
+        self.work_moving_box_canvas.pack()
+
+        self.work_moving_box_drag_count = 0
+
+        self.work_moving_box_create_drop_zone()
+        self.work_moving_box_create_random_package()
+
+        self.work_moving_box_frame1.bind("<Button-2>", lambda event: self.work_end())
+
+    def work_moving_box_create_drop_zone(self):
+        self.zone_image = tk.PhotoImage(file="data/img/zone.png").subsample(2, 2)
+        self.drop_zone = self.work_moving_box_canvas.create_image(random.randint(0, 380), random.randint(10, 270), anchor="nw", image=self.zone_image)
+
+    def work_moving_box_create_random_package(self):
+        self.package_image = tk.PhotoImage(file="data/img/pack.png").subsample(2, 2)
+        self.package = self.work_moving_box_canvas.create_image(random.randint(0, 400), random.randint(0, 300), anchor="nw", image=self.package_image)
+        self.work_moving_box_canvas.tag_bind(self.package, "<ButtonPress-1>", self.work_moving_box_on_drag_start)
+        self.work_moving_box_canvas.tag_bind(self.package, "<B1-Motion>", self.work_moving_box_on_drag_motion)
+        self.work_moving_box_canvas.tag_bind(self.package, "<ButtonRelease-1>", self.work_moving_box_on_drag_release)
+        
+    def work_moving_box_on_drag_start(self, event):
+        self.drag_data = {'x': event.x, 'y': event.y}
+        
+    def work_moving_box_on_drag_motion(self, event):
+        d_x = event.x - self.drag_data['x']
+        d_y = event.y - self.drag_data['y']
+        self.work_moving_box_canvas.move(self.package, d_x, d_y)
+        self.drag_data['x'] = event.x
+        self.drag_data['y'] = event.y
+        
+    def work_moving_box_on_drag_release(self, event=None):
+        package_coords = self.work_moving_box_canvas.coords(self.package)
+        drop_zone_coords = self.work_moving_box_canvas.coords(self.drop_zone)
+        print(package_coords)
+        if (drop_zone_coords[0] - 5 <= package_coords[0] <= drop_zone_coords[0] + 35 and
+            drop_zone_coords[1] - 5 <= package_coords[1] <= drop_zone_coords[1] + 35):
+            self.work_moving_box_canvas.delete(self.package)
+            self.work_moving_box_drag_count += 1
+            # print(f"Odstawiłeś na ten moment: {self.work_moving_box_drag_count}")
+
+            self.work_moving_box_label1.config(text = f"Paczek dostarczonych: {self.work_moving_box_drag_count}/12")
+            if self.work_moving_box_drag_count >= 12:
+                self.work_end()
+                return
+            self.work_moving_box_create_drop_zone()
+            self.work_moving_box_create_random_package()
+        elif (-90 >= package_coords[0] or package_coords[0] >= 495 or
+              -90 >= package_coords[1] or package_coords[1] >= 395):
+            self.main.emergency_from_work(self.work_job, "Nie dostaniesz bonusu bo wyrzuciłeś paczkę.")
+    
+    def work_end(self):
+        self.main.end_work(True, self.work_job)
+        
 root = tk.Tk()
 game = Game(root)
 root.mainloop()
