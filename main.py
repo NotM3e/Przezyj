@@ -102,11 +102,8 @@ class Game():
         self.load_label2.pack(pady=5, side=tk.LEFT, anchor=tk.SW)
 
         # Question icon
-        self.load_question_canvas = tk.Canvas(self.load_frame2, bg=self.color_1, bd=0, highlightthickness=0, width=32, height=32)
-        self.load_question_canvas.create_image(16, 16, anchor=tk.CENTER, image=self.question_icon)
-        self.load_question_canvas.pack(pady=5, padx=5, side=tk.RIGHT, anchor=tk.SE)
-        
-        self.load_question_canvas.bind("<Button-1>", lambda event: self.show_info_message("Wczytywanie!", "Wczytaj swoją przygodę! W każdym momencie możesz załadować swój postęp, jednak pamiętaj, że w przypadku śmierci wszystkie zapisane dane związane z tą sesją zostaną usunięte. Graj ostrożnie i korzystaj z tej możliwości mądrze!")) # TEMP usuwanie save kiedyś zmienić
+        self.load_question_canvas = self.create_question_icon(self.load_frame2, "Wczytywanie!", "Wczytaj swoją przygodę! W każdym momencie możesz załadować swój postęp, jednak pamiętaj, że w przypadku śmierci wszystkie zapisane dane związane z tą sesją zostaną usunięte. Graj ostrożnie i korzystaj z tej możliwości mądrze!")
+         # TEMP usuwanie save kiedyś zmienić
 
         self.load_frame1.pack_forget()
         self.load_saves(self.load_listbox)
@@ -135,6 +132,22 @@ class Game():
         self.last_save = []
         self.root_x()
         print(self.last_save)
+        
+    def create_question_icon(self, frame, title, content):
+        question_canvas = tk.Canvas(frame, bg=self.color_1, bd=0, highlightthickness=0, width=32, height=32)
+        question_canvas.create_image(16, 16, anchor=tk.CENTER, image=self.question_icon)
+        question_canvas.pack(pady=5, padx=5, side=tk.RIGHT, anchor=tk.SE)
+
+        question_canvas.bind("<Button-1>", lambda event: self.show_info_message(title, content))
+        
+        return question_canvas
+
+    def create_back_button(self, parent, b_width, hide_frame, show_frame, pack_args, *args):
+        back_button = tk.Button(parent, text="Wróć", font=self.font_p1, bg=self.color_5, width=b_width, command=lambda:
+                [self.hide_frame(hide_frame), show_frame.pack(**pack_args), *args])
+        return back_button
+# self.maingame_save_button3 = tk.Button(self.maingame_save_frame1, text="Wróć", font=self.font_p1, bg=self.color_5, width=14, command=lambda:
+# [self.hide_frame(self.maingame_save_frame1), self.maingame_frame1.pack(fill=tk.BOTH, expand=True, padx=3, pady=2), self.maingame_save_label3.config(text="")])
 
     def show_info_message(self, title, message):
         messagebox.showinfo(title, message)
@@ -187,13 +200,16 @@ class Game():
         self.question_button2.pack(padx=5, ipady=4, side=tk.LEFT)
 
     def small_question(self, frame, quest, next_func, *arg):
-        print("small_question")
         label = self.find_label(frame)
+
+        if hasattr(self, 's_question_frame') and self.s_question_frame:
+            if self.s_question_frame.winfo_ismapped():
+                return
         if label:
             label.config(text="")
         
         self.s_question_frame = tk.Frame(frame, bg=self.color_1)
-        self.s_question_label1 = tk.Label(self.s_question_frame, text=quest, font=self.font_p2, fg=self.color_4, bg=self.color_1, wraplength=450)
+        self.s_question_label1 = tk.Label(self.s_question_frame, text=quest, font=self.font_p2, fg=self.color_4, bg=self.color_1, wraplength=430)
         self.s_question_frame1 = tk.Frame(self.s_question_frame, bg=self.color_1)
         self.s_question_button1 = tk.Button(self.s_question_frame1, text="Nie", font=self.font_p2, bg=self.color_5, width=5, command=lambda:
                 [self.hide_frame(self.s_question_frame)])
@@ -498,17 +514,13 @@ class Game():
         self.maingame_frame5_2frame2.pack(expand=True)
 
         # Question icon
-        self.maingame_question_canvas = tk.Canvas(self.maingame_frame8, bg=self.color_1, bd=0, highlightthickness=0, width=32, height=32)
-        self.maingame_question_canvas.create_image(16, 16, anchor=tk.CENTER, image=self.question_icon)
-        self.maingame_question_canvas.pack(padx=5, side=tk.RIGHT, anchor=tk.SE)
+        self.maingame_question_canvas = self.create_question_icon(self.maingame_frame8, "Informacja!", "W głównej części gry masz możliwość przechodzenia do następnego dnia, kontynuując swoją przygodę, zapewniania swoich podstawowych potrzeb, takich jak jedzenie, picie i odpoczynek, sprawdzania swoich statystyk, aby monitorować postęp, przechodzenia do różnych miejsc, takich jak praca czy sklep, aby wykonywać zadania lub kupować potrzebne przedmioty, oraz sprawdzania swojego ekwipunku, zarządzania przedmiotami i dostosowywania ich do zmieniających się sytuacji.")
         
         # Binds
         self.maingame_debug_canvas.bind("<Button-1>", lambda event: [
                 self.pre_work(self.stats["work"]), print(self.stats["internship"])])
         self.maingame_debug_canvas.bind("<Button-2>", lambda event: [
                 self.increase_stats(["intelligence","strength", "stamina"], 10), print(self.stats), self.pre_work(2)])
-        self.maingame_question_canvas.bind("<Button-1>", lambda event:
-                self.show_info_message("Informacja!", "W głównej części gry masz możliwość przechodzenia do następnego dnia, kontynuując swoją przygodę, zapewniania swoich podstawowych potrzeb, takich jak jedzenie, picie i odpoczynek, sprawdzania swoich statystyk, aby monitorować postęp, przechodzenia do różnych miejsc, takich jak praca czy sklep, aby wykonywać zadania lub kupować potrzebne przedmioty, oraz sprawdzania swojego ekwipunku, zarządzania przedmiotami i dostosowywania ich do zmieniających się sytuacji."))
         self.maingame_save_canvas.bind("<Button-1>", lambda event:
                 [self.hide_frame(self.maingame_frame1),
                  self.maingame_save_frame1.pack(fill=tk.BOTH, expand=True, padx=3, pady=5), self.load_saves(self.maingame_save_listbox)])
@@ -600,11 +612,9 @@ class Game():
         self.maingame_save_frame2.pack(fill=tk.BOTH, expand=True)
         self.maingame_save_label3.pack(pady=5, side=tk.LEFT, anchor=tk.SW)
 
-        self.maingame_save_question_canvas = tk.Canvas(self.maingame_save_frame2, bg=self.color_1, bd=0, highlightthickness=0, width=32, height=32)
-        self.maingame_save_question_canvas.create_image(16, 16, anchor=tk.CENTER, image=self.question_icon)
-        self.maingame_save_question_canvas.pack(padx=5, side=tk.RIGHT, anchor=tk.SE)
-        
-        self.maingame_save_question_canvas.bind("<Button-1>", lambda event: self.show_info_message("Zapisywanie!", "Zapisz swoją przygodę! W każdym momencie możesz zachować swój postęp, jednak pamiętaj, że w przypadku wszystkie zapisane dane związane z tą sesją zostaną usunięte. Graj ostrożnie i korzystaj z tej możliwości mądrze!")) # TEMP usuwanie save kiedyś zmienić
+        # Question icon
+        self.maingame_save_question_canvas = self.create_question_icon(self.maingame_save_frame2, "Zapisywanie!", "Zapisz swoją przygodę! W każdym momencie możesz zachować swój postęp, jednak pamiętaj, że w przypadku wszystkie zapisane dane związane z tą sesją zostaną usunięte. Graj ostrożnie i korzystaj z tej możliwości mądrze!")
+        # TEMP usuwanie save kiedyś zmienić
 
 
         self.maingame_save_frame1.pack_forget()
@@ -655,11 +665,9 @@ class Game():
         self.maingame_death_frame5.pack(fill=tk.BOTH, expand=True)
         self.maingame_death_frame5_label1.pack(pady=5, side=tk.LEFT, anchor=tk.SW)
 
-        self.maingame_death_question_canvas = tk.Canvas(self.maingame_death_frame5, bg=self.color_1, bd=0, highlightthickness=0, width=32, height=32)
-        self.maingame_death_question_canvas.create_image(16, 16, anchor=tk.CENTER, image=self.question_icon)
-        self.maingame_death_question_canvas.pack(pady=5, padx=5, side=tk.RIGHT, anchor=tk.SE)
-                
-        self.maingame_death_question_canvas.bind("<Button-1>", lambda event: self.show_info_message("Śmierć", "Po śmierci, wszystkie zapisane dane związane z bieżącą sesją zostaną nieodwracalnie usunięte.")) # TEMP konfiguracja wiadomości
+        # Question icon
+        self.maingame_death_question_canvas= self.create_question_icon(self.maingame_death_frame5, "Śmierć", "Po śmierci, wszystkie zapisane dane związane z bieżącą sesją zostaną nieodwracalnie usunięte.")
+        # TEMP konfiguracja wiadomości
 
         self.maingame_death_frame1.pack_forget()
 
@@ -685,13 +693,13 @@ class Game():
             self.adjust_progressbar(self.maingame_frame5_1_progressbar3, self.stats["fatigue"])
         
         if skills:
-            self.adjust_progressbar(self.work_skills_progressbar1, self.stats["intelligence"])
-            self.adjust_progressbar(self.work_skills_progressbar2, self.stats["strength"])
-            self.adjust_progressbar(self.work_skills_progressbar3, self.stats["stamina"])
-            if self.stats["duty"]:
-                self.work_skills_label5_a.config(text="☑")
+            self.adjust_progressbar(self.work_skills_progress[0], self.stats["intelligence"])
+            self.adjust_progressbar(self.work_skills_progress[1], self.stats["strength"])
+            self.adjust_progressbar(self.work_skills_progress[2], self.stats["stamina"])
+            if self.stats["duty"]: # ❎☑❓
+                self.work_skills_progress[3].config(text="brak")
             else: 
-                self.work_skills_label5_a.config(text="❎")
+                self.work_skills_progress[3].config(text="brak")
 
     def adjust_progressbar(self, progressbar, target_value):
         prev_value = progressbar["value"]
@@ -862,11 +870,9 @@ class Game():
         self.store_label6.pack(pady=5, side=tk.LEFT, anchor=tk.SW)
 
 
-        self.store_question_canvas = tk.Canvas(self.store_frame4, bg=self.color_1, bd=0, highlightthickness=0, width=32, height=32)
-        self.store_question_canvas.create_image(16, 16, anchor=tk.CENTER, image=self.question_icon)
-        self.store_question_canvas.pack(pady=5, padx=5, side=tk.RIGHT, anchor=tk.SE)
-
-        self.store_question_canvas.bind("<Button-1>", lambda event: self.show_info_message("Sklep!", "W sklepie możesz zakupić produkty niezbędne do życia, jak również przedmioty rozrywkowe, takie jak zdrapki czy gazety. Ceny produktów zmieniają się codziennie, a towary są dostępne w ograniczonej ilości, dlatego dobrze jest być czujnym i dokonywać zakupów z rozwagą.")) # TEMP konfiguracja wiadomości
+        # Question icon
+        self.store_question_canvas = self.create_question_icon(self.store_frame4, "Sklep!", "W sklepie możesz zakupić produkty niezbędne do życia, jak również przedmioty rozrywkowe, takie jak zdrapki czy gazety. Ceny produktów zmieniają się codziennie, a towary są dostępne w ograniczonej ilości, dlatego dobrze jest być czujnym i dokonywać zakupów z rozwagą.")
+        # TEMP konfiguracja wiadomości
 
     # Work window:
     
@@ -929,16 +935,13 @@ class Game():
         self.work_frame4.pack(fill=tk.BOTH, expand=True)
         self.work_label2.pack(pady=5, side=tk.LEFT, anchor=tk.SW)
 
-        self.work_question_canvas = tk.Canvas(self.work_frame4, bg=self.color_1, bd=0, highlightthickness=0, width=32, height=32)
-        self.work_question_canvas.create_image(16, 16, anchor=tk.CENTER, image=self.question_icon)
-        self.work_question_canvas.pack(pady=5, padx=5, side=tk.RIGHT, anchor=tk.SE)
-
-            # Binds:
-        self.work_question_canvas.bind("<Button-1>", lambda event: self.show_info_message("Praca!", "W oknie pracy możesz podjąć zatrudnienie. Pamiętaj, że nie wszędzie z niskimi umiejętnościami się dostaniesz, a szef nie awansuje cię, jeśli nie wykonujesz pracy perfekcyjnie. Gdy nie masz pracy, raz dziennie możesz żebrać, zdobywając pieniądze i czasem jakieś przedmioty. Wypłatę możesz odebrać co piąty dzień pracy, co wiąże się z interaktywnym zadaniem do wykonania! Należy pamiętać, że jeśli poprosisz szefa o wcześniejszą wypłatę, otrzymasz mniejsze wynagrodzenie. Wykonanie interaktywnego zadania dodaje bonus do wypłaty oraz zwiększa szanse na awans.")) # TEMP konfiguracja wiadomości
+        # Question icon
+        self.work_question_canvas = self.create_question_icon(self.work_frame4, "Praca!", "W oknie pracy możesz podjąć zatrudnienie. Pamiętaj, że nie wszędzie z niskimi umiejętnościami się dostaniesz, a szef nie awansuje cię, jeśli nie wykonujesz pracy perfekcyjnie. Gdy nie masz pracy, raz dziennie możesz żebrać, zdobywając pieniądze i czasem jakieś przedmioty. Wypłatę możesz odebrać co piąty dzień pracy, co wiąże się z interaktywnym zadaniem do wykonania! Należy pamiętać, że jeśli poprosisz szefa o wcześniejszą wypłatę, otrzymasz mniejsze wynagrodzenie. Wykonanie interaktywnego zadania dodaje bonus do wypłaty oraz zwiększa szanse na awans.")
+        # TEMP konfiguracja wiadomości
 
         self.work_stats_refresh(self.stats["work"])
 
-        # Find work tab:
+    # Find work tab:
         self.work_find_frame0 = tk.Frame(self.rootsec_main, bg=self.color_1)
         self.work_find_label1 = tk.Label(self.work_find_frame0, text="Aplikuj do pracy", font=self.font_h2, fg=self.color_4, bg=self.color_1, width=25)
         self.work_find_frame1 = tk.Frame(self.work_find_frame0, bg=self.color_1)
@@ -963,78 +966,76 @@ class Game():
         self.work_find_frame3.pack(fill=tk.BOTH, expand=True)
         self.work_find_label2.pack(pady=5, side=tk.LEFT, anchor=tk.SW)
 
-        self.work_find_question_canvas = tk.Canvas(self.work_find_frame3, bg=self.color_1, bd=0, highlightthickness=0, width=32, height=32)
-        self.work_find_question_canvas.create_image(16, 16, anchor=tk.CENTER, image=self.question_icon)
-        self.work_find_question_canvas.pack(pady=5, padx=5, side=tk.RIGHT, anchor=tk.SE)
-        self.work_find_question_canvas.bind("<Button-1>", lambda event: self.show_info_message("Aplikuj do pracy!", "W oknie aplikowania do pracy pamiętaj, że niektóre stanowiska wymagają większych umiejętności niż tylko pisanie i czytanie. Dlatego z czasem konieczne będzie podjęcie dodatkowej nauki, aby zdobyć wymagane kwalifikacje i awansować w karierze.")) # TEMP konfiguracja wiadomości
-
+        # Question icon
+        self.work_find_question_canvas = self.create_question_icon(self.work_find_frame3, "Aplikuj do pracy!", "W oknie aplikowania do pracy pamiętaj, że niektóre stanowiska wymagają większych umiejętności niż tylko pisanie i czytanie. Dlatego z czasem konieczne będzie podjęcie dodatkowej nauki, aby zdobyć wymagane kwalifikacje i awansować w karierze.")
+        # TEMP konfiguracja wiadomości
         self.work_find_frame0.pack_forget()
         
-        # Skills work tab:
+    # Skills work tab:
         self.work_skills_frame0 = tk.Frame(self.rootsec_main, bg=self.color_1)
-        self.work_skills_label1 = tk.Label(self.work_skills_frame0, text="Twoje umiejętności☑❎", font=self.font_h2, fg=self.color_4, bg=self.color_1, width=25)
-
+        self.work_skills_label1 = tk.Label(self.work_skills_frame0, text="Twoje umiejętności", font=self.font_h2, fg=self.color_4, bg=self.color_1, width=25)
         self.work_skills_frame1 = tk.Frame(self.work_skills_frame0, bg=self.color_1)
-        self.work_skills_label2 = tk.Label(self.work_skills_frame1, text="Inteligencja", font=self.font_p2i, fg=self.color_5, bg=self.color_1)
-        self.work_skills_progressbar1 = ttk.Progressbar(self.work_skills_frame1, orient="horizontal", mode="determinate", length=100, maximum=100)
-        self.work_skills_label3 = tk.Label(self.work_skills_frame1, text="Siła", font=self.font_p2i, fg=self.color_5, bg=self.color_1)
-        self.work_skills_progressbar2 = ttk.Progressbar(self.work_skills_frame1, orient="horizontal", mode="determinate", length=100, maximum=100)
-        self.work_skills_label4 = tk.Label(self.work_skills_frame1, text="Stamina", font=self.font_p2i, fg=self.color_5, bg=self.color_1)
-        self.work_skills_empty1 = tk.Label(self.work_skills_frame1, text="", bg=self.color_1)
-        self.work_skills_progressbar3 = ttk.Progressbar(self.work_skills_frame1, orient="horizontal", mode="determinate", length=100, maximum=100)
-        self.work_skills_label5 = tk.Label(self.work_skills_frame1, text="Prawo jazdy?", font=self.font_p2i, fg=self.color_5, bg=self.color_1)
-        self.work_skills_label5_a = tk.Label(self.work_skills_frame1, text="❎", font=self.font_p1b, fg=self.color_5, bg=self.color_1)
-        self.work_skills_label6 = tk.Label(self.work_skills_frame1, text="Kurs zarządzania?", font=self.font_p2i, fg=self.color_5, bg=self.color_1)
-        self.work_skills_label6_a = tk.Label(self.work_skills_frame1, text="❎", font=self.font_p1b, fg=self.color_5, bg=self.color_1)
-        self.work_skills_label7 = tk.Label(self.work_skills_frame1, text="WIP", font=self.font_p2i, fg=self.color_5, bg=self.color_1)
-        self.work_skills_label7_a = tk.Label(self.work_skills_frame1, text="❎", font=self.font_p1b, fg=self.color_5, bg=self.color_1)
-        self.work_skills_empty2 = tk.Label(self.work_skills_frame1, text="", bg=self.color_1)
-
-        self.work_skills_button1 = tk.Button(self.work_skills_frame0, text="Wróć", font=self.font_p1, bg=self.color_5, width=14, command=lambda:
-                [self.hide_frame(self.work_skills_frame0), self.work_frame0.pack(fill=tk.BOTH, expand=True, padx=3, pady=5)])
-        
         self.work_skills_frame2 = tk.Frame(self.work_skills_frame0, bg=self.color_1)
-        self.work_skills_label8 = tk.Label(self.work_skills_frame2, text="", font=self.font_p2, fg=self.color_4, bg=self.color_1, wraplength=270)
+        self.work_skills_label2 = tk.Label(self.work_skills_frame2, text="", font=self.font_p2, fg=self.color_4, bg=self.color_1, wraplength=270)
+
+        self.work_skills_titles = ["Inteligencja", "Siła", "Stamina", "Prawo jazdy?", "Kurs zarządzania?", "WIP"]
+        self.work_skills_definition = [True, True, True, False, False, False] # True = progressbar, False = checkbox
+        self.work_skills_labels = []
+        self.work_skills_progress = []
+        self.work_skills_emptys = []
+
+
+        # Loop for create labels and visualization:
+        x1 = 0
+        y1 = 0
+        z = 0
+        for i in [x for x in range(1, len(self.work_skills_titles) + 1)]:
+            self.work_skills_labels.append(tk.Label(self.work_skills_frame1, text=self.work_skills_titles[i-1], font=self.font_p2i, fg=self.color_5, bg=self.color_1))
+            self.work_skills_frame1.grid_columnconfigure(x1, weight=1)
+            self.work_skills_labels[i-1].grid(row=y1, column=x1)
+            x1 += 1
+            if i % 3 == 0:
+                x1 = 0
+                y1 += 3
+                self.work_skills_emptys.append(tk.Label(self.work_skills_frame1, text="- - - - - - - - - - - - - - - - - - - - - - - - - -", font=self.font_p1b, fg=self.color_2, bg=self.color_1))
+                self.work_skills_emptys[z].grid(row=y1 - 1 , column=x1, columnspan=3)
+                z += 1
+
+        # Loop for create progress and visualization:
+        x2 = 0
+        y2 = 1
+        for i in [x for x in range(1, len(self.work_skills_titles) + 1)]:
+            if self.work_skills_definition[i-1]:
+                self.work_skills_progress.append(ttk.Progressbar(self.work_skills_frame1, orient="horizontal", length=100, mode="determinate", max=100))
+            else:
+                self.work_skills_progress.append(tk.Label(self.work_skills_frame1, text="❓", font=self.font_p1b, fg=self.color_5, bg=self.color_1))
+            self.work_skills_progress[i-1].grid(row=y2, column=x2)
+            x2 += 1
+            if i % 3 == 0:
+                x2 = 0
+                y2 += 3
+
+        self.work_skills_button1 = self.create_back_button(self.work_skills_frame0, 14, self.work_skills_frame0, self.work_frame0, {"fill": tk.BOTH, "expand": True, "padx": 3, "pady": 5})
 
         self.work_skills_frame0.pack(fill=tk.BOTH, expand=True, padx=3, pady=5)
         self.work_skills_label1.pack(pady=5)
-
         self.work_skills_frame1.pack(fill=tk.BOTH, expand=True)
-        self.work_skills_label2.grid(row=0, column=0)
-        self.work_skills_progressbar1.grid(row=1, column=0, padx=10)
-        self.work_skills_label3.grid(row=0, column=1)
-        self.work_skills_progressbar2.grid(row=1, column=1, padx=10)
-        self.work_skills_label4.grid(row=0, column=2)
-        self.work_skills_progressbar3.grid(row=1, column=2, padx=10)
-        self.work_skills_empty1.grid(row=2, column=0, columnspan=3)
-
-        self.work_skills_label5.grid(row=3, column=0)
-        self.work_skills_label5_a.grid(row=4, column=0)
-        self.work_skills_label6.grid(row=3, column=1)
-        self.work_skills_label6_a.grid(row=4, column=1)
-        self.work_skills_label7.grid(row=3, column=2)
-        self.work_skills_label7_a.grid(row=4, column=2)
-        self.work_skills_empty2.grid(row=5, column=0, columnspan=3)
-        
-        self.work_skills_button1.pack(ipady=2)
+        self.work_skills_button1.pack()
         self.work_skills_frame2.pack(fill=tk.BOTH, expand=True)
-        self.work_skills_label8.pack(pady=5, side=tk.LEFT, anchor=tk.SW)
+        self.work_skills_label2.pack(pady=5, side=tk.LEFT, anchor=tk.SW)
 
-        self.work_skills_question_canvas = tk.Canvas(self.work_skills_frame2, bg=self.color_1, bd=0, highlightthickness=0, width=32, height=32)
-        self.work_skills_question_canvas.create_image(16, 16, anchor=tk.CENTER, image=self.question_icon)
-        self.work_skills_question_canvas.pack(pady=5, padx=5, side=tk.RIGHT, anchor=tk.SE)
-        self.work_skills_question_canvas.bind("<Button-1>", lambda event: self.show_info_message("WIP!", "WIP")) # TEMP konfiguracja wiadomości
+        self.work_skills_labels[0].bind("<Button-1>", lambda event: self.increase_stats(["intelligence"], 5, True))
+        self.work_skills_progress[0].bind("<Button-1>", lambda event: self.increase_stats(["intelligence"], 5, True))
+        self.work_skills_labels[1].bind("<Button-1>", lambda event: self.increase_stats(["strength"], 5, True))
+        self.work_skills_progress[1].bind("<Button-1>", lambda event: self.increase_stats(["strength"], 5, True))
+        self.work_skills_labels[2].bind("<Button-1>", lambda event: self.increase_stats(["stamina"], 5, True))
+        self.work_skills_progress[2].bind("<Button-1>", lambda event: self.increase_stats(["stamina"], 5, True))
 
-        self.work_skills_label2.bind("<Button-1>", lambda event: self.increase_stats(["intelligence"], 1, True))
-        self.work_skills_progressbar1.bind("<Button-1>", lambda event: self.increase_stats(["intelligence"], 1, True))
-        self.work_skills_label3.bind("<Button-1>", lambda event: self.increase_stats(["strength"], 1, True))
-        self.work_skills_progressbar2.bind("<Button-1>", lambda event: self.increase_stats(["strength"], 1, True))
-        self.work_skills_label4.bind("<Button-1>", lambda event: self.increase_stats(["stamina"], 1, True))
-        self.work_skills_progressbar3.bind("<Button-1>", lambda event: self.increase_stats(["stamina"], 1, True))
+        # Question icon
+        self.work_skills_question_canvas = self.create_question_icon(self.work_skills_frame2, "Umiejętności pracy!", "BRAK")
+        # TEMP konfiguracja wiadomości
 
-        for i in range(3):
-            self.work_skills_frame1.grid_columnconfigure(i, weight=1)
-
+        # self.work_skills_progress[3].bind("<Button-1>", lambda event: self.small_question(self.work_skills_frame2, "Czy chcesz przystąpić do egzaminu na prawo jazdy?", None, None)) # TEMP
 
         self.work_skills_frame0.pack_forget()
 
@@ -1130,10 +1131,11 @@ class Game():
         label.config(text="Work In Progress")
 
     def increase_stats(self, stats, value, minus_fatigue = None):
+        """Function to increase the number of statistics."""
         for stat in stats:
             self.stats[stat] += value
         if minus_fatigue:
-            self.stats["fatigue"] -= random.randint(7,13)
+            self.stats["fatigue"] -= random.randint(3, 7)
             self.refresh_data(False, True, True)
             self.death_detector()
 
@@ -1452,6 +1454,21 @@ class MiniGame():
         self.sc_click_count = 0
         self.root_third.protocol("WM_DELETE_WINDOW", lambda: self.sc_get_result_text(True))
 
+        self.sc_images_paths = [
+            "data/img/pszemo_money1.png",
+            "data/img/pszemo_money2.png",
+            "data/img/pszemo_money3.png",
+            "data/img/pszemo_money4.png",
+            "data/img/pszemo_money5.png"
+        ]
+        self.sc_images = []
+
+        # Wczytanie i zmiana rozmiaru obrazów
+        for path in self.sc_images_paths:
+            img = Image.open(path)
+            img = img.resize((400, 400), Image.LANCZOS)
+            self.sc_images.append(ImageTk.PhotoImage(img))
+
         self.sc_prizes = {
             1: ["Gratulacje! Wygrałeś 50 zł!", 50],
             2: ["Super! Nic nie wygrałeś", 0],
@@ -1492,7 +1509,6 @@ class MiniGame():
         self.sc_canvas.create_image(0, 0, anchor=tk.NW, image=self.sc_photo)
 
         # Umieść napis na zdjęciu
-        self.sc_label1 = self.sc_canvas.create_text(200, 240, text="", width=280, font=self.main.font_p1, fill="black", justify=tk.CENTER)
 
         self.sc_label2 = tk.Label(self.rootthrid_frame2, text="Klikaj na zdrapkę, aby otworzyć!", font=self.main.font_p2, fg=self.main.color_4, bg=self.main.color_1, wraplength=270)
         self.sc_label2.pack(pady=5, side=tk.LEFT, anchor=tk.SW)
@@ -1501,10 +1517,17 @@ class MiniGame():
         
     def sc_click_handler(self, event):
         self.sc_click_count += 1
+        print(self.sc_click_count)
+
         if self.sc_click_count == 5:
+            self.sc_label1 = self.sc_canvas.create_text(200, 240, text="", width=280, font=self.main.font_p1, fill="black", justify=tk.CENTER)
             self.sc_canvas.itemconfig(self.sc_label1, text=self.sc_get_result_text())
-        elif self.sc_click_count > 5:
+        elif self.sc_click_count >= 5:
             self.activation()
+        else:
+            self.sc_current_photo = self.sc_images[self.sc_click_count]
+            self.sc_canvas.delete("all")  # Usunięcie poprzedniego obrazu
+            self.sc_canvas.create_image(0, 0, anchor=tk.NW, image=self.sc_current_photo)
 
     def sc_get_result_text(self, handle = None):
         if random.random() < 0.2:
