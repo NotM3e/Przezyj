@@ -41,8 +41,10 @@ class Game():
         self.last_save = []
         self.root_second_opened = 0
         self.root_third_opened = False
+        self.root_cheat_opened = False
 
         # self.create_statistics() # TEMP
+        # CheatMenu(self)
 
         self.create_start_gui() # TEMP
         self.show_start_gui()   # TEMP
@@ -164,7 +166,8 @@ class Game():
             frame.pack_forget()
 
     def intermediary(self, label, value, next_func = None, arg = None):
-        label.config(text=value)
+        if label:
+            label.config(text=value)
         if next_func:
             next_func(arg)
 
@@ -232,8 +235,8 @@ class Game():
     # Statistics on the world in the game:
         self.stats = {
             "life": True,
-            "day": 0,
-            "money": round(random.uniform(9.90, 21.90), 2),
+            'day': 0,
+            'money': round(random.uniform(9.90, 21.90), 2),
             "work": 0,
             "duty": False,
             "intelligence": 10,
@@ -401,8 +404,8 @@ class Game():
         self.maingame_frame2 = tk.Frame(self.maingame_frame1, bg=self.color_2, highlightbackground=self.color_3, highlightthickness=2)
         self.maingame_stats_label1 = tk.Label(self.maingame_frame2, text="Dzień", font=self.font_p2i, fg=self.color_5, bg=self.color_2)
         self.maingame_stats_label2 = tk.Label(self.maingame_frame2, text="Pieniądze", font=self.font_p2i, fg=self.color_5, bg=self.color_2)
-        self.maingame_stats_label3 = tk.Label(self.maingame_frame2, text=self.stats["day"], font=self.font_p1b, fg=self.color_4, bg=self.color_2)
-        self.maingame_stats_label4 = tk.Label(self.maingame_frame2, text=f"{self.stats["money"]} PLN", font=self.font_p1b, fg=self.color_4, bg=self.color_2)
+        self.maingame_stats_label3 = tk.Label(self.maingame_frame2, text=self.stats['day'], font=self.font_p1b, fg=self.color_4, bg=self.color_2)
+        self.maingame_stats_label4 = tk.Label(self.maingame_frame2, text=f"{self.stats['money']} PLN", font=self.font_p1b, fg=self.color_4, bg=self.color_2)
 
         # Configure grid columns
         self.maingame_frame2.grid_columnconfigure(0, weight=1)
@@ -517,10 +520,15 @@ class Game():
         self.maingame_question_canvas = self.create_question_icon(self.maingame_frame8, "Informacja!", "W głównej części gry masz możliwość przechodzenia do następnego dnia, kontynuując swoją przygodę, zapewniania swoich podstawowych potrzeb, takich jak jedzenie, picie i odpoczynek, sprawdzania swoich statystyk, aby monitorować postęp, przechodzenia do różnych miejsc, takich jak praca czy sklep, aby wykonywać zadania lub kupować potrzebne przedmioty, oraz sprawdzania swojego ekwipunku, zarządzania przedmiotami i dostosowywania ich do zmieniających się sytuacji.")
         
         # Binds
+        """
         self.maingame_debug_canvas.bind("<Button-1>", lambda event: [
                 self.pre_work(self.stats["work"]), print(self.stats["internship"])])
         self.maingame_debug_canvas.bind("<Button-2>", lambda event: [
                 self.increase_stats(["intelligence","strength", "stamina"], 10), print(self.stats), self.pre_work(2)])
+        """
+        self.maingame_debug_canvas.bind("<Button-3>", lambda event: [
+                CheatMenu(self)
+        ])
         self.maingame_save_canvas.bind("<Button-1>", lambda event:
                 [self.hide_frame(self.maingame_frame1),
                  self.maingame_save_frame1.pack(fill=tk.BOTH, expand=True, padx=3, pady=5), self.load_saves(self.maingame_save_listbox)])
@@ -578,8 +586,8 @@ class Game():
             4: (45, 25, 20)     # Kierownik magazynu
         }
 
-        self.last_begging = self.stats["day"] - 1
-        self.product_day = self.stats["day"] - 1
+        self.last_begging = self.stats['day'] - 1
+        self.product_day = self.stats['day'] - 1
 
         self.refresh_stats()
         self.refresh_data()
@@ -631,10 +639,10 @@ class Game():
         self.maingame_death_frame4frame1 = tk.Frame(self.maingame_death_frame4, bg=self.color_1)
         self.maingame_death_frame4_frame1 = tk.Frame(self.maingame_death_frame4frame1, bg=self.color_3, highlightbackground=self.color_2, highlightthickness=1)
         self.maingame_death_frame4_frame1_label1 = tk.Label(self.maingame_death_frame4_frame1, text="Dzień:", font=self.font_p2i, fg=self.color_5, bg=self.color_3, width=12)
-        self.maingame_death_frame4_frame1_label2 = tk.Label(self.maingame_death_frame4_frame1, text=self.stats["day"], font=self.font_p1, fg=self.color_4, bg=self.color_3)
+        self.maingame_death_frame4_frame1_label2 = tk.Label(self.maingame_death_frame4_frame1, text=self.stats['day'], font=self.font_p1, fg=self.color_4, bg=self.color_3)
         self.maingame_death_frame4_frame2 = tk.Frame(self.maingame_death_frame4frame1, bg=self.color_3, highlightbackground=self.color_2, highlightthickness=1)
         self.maingame_death_frame4_frame2_label1 = tk.Label(self.maingame_death_frame4_frame2, text="Pieniędzy:", font=self.font_p2i, fg=self.color_5, bg=self.color_3, width=12)
-        self.maingame_death_frame4_frame2_label2 = tk.Label(self.maingame_death_frame4_frame2, text=self.stats["money"], font=self.font_p1, fg=self.color_4, bg=self.color_3)
+        self.maingame_death_frame4_frame2_label2 = tk.Label(self.maingame_death_frame4_frame2, text=self.stats['money'], font=self.font_p1, fg=self.color_4, bg=self.color_3)
         self.maingame_death_frame4frame2 = tk.Frame(self.maingame_death_frame4, bg=self.color_1)
 
         self.maingame_death_frame3_button1 = tk.Button(self.maingame_death_frame3, text="Statystyki", font=self.font_p1, bg=self.color_5, width=15)
@@ -683,9 +691,9 @@ class Game():
     # Refresh of data in the game window, called when it changes
     def refresh_data(self, stats=True, needs=True, skills=False):
         if stats:
-            self.stats["money"] = round(self.stats["money"], 2)
-            self.maingame_stats_label3.config(text=self.stats["day"])
-            self.maingame_stats_label4.config(text=f"{self.stats["money"]} PLN")
+            self.stats['money'] = round(self.stats['money'], 2)
+            self.maingame_stats_label3.config(text=self.stats['day'])
+            self.maingame_stats_label4.config(text=f"{self.stats['money']} PLN")
 
         if needs:
             self.adjust_progressbar(self.maingame_frame5_1_progressbar1, self.stats["thirst"])
@@ -799,6 +807,7 @@ class Game():
             self.death_detector()
 
     def update_item_frames(self, frame, func = None):
+        """Funckja odpowiedzialna za odświeżenie elementów framów"""
         # Usuń stare ramki
         for widget in frame.winfo_children():
             widget.destroy()
@@ -809,7 +818,7 @@ class Game():
 
     def set_needs_event(self, key, config2, text2, value):
         if config2 and text2:
-            config2.config(text=f"Dzień {self.stats["day"]}: {text2}")
+            config2.config(text=f"Dzień {self.stats['day']}: {text2}")
         self.stats[key] = value
 
     def root_x(self):
@@ -1041,7 +1050,7 @@ class Game():
 
     def second_products(self):
         # New prices every day
-        if not self.root_second_opened == 1 or not self.product_day == self.stats["day"]:
+        if not self.root_second_opened == 1 or not self.product_day == self.stats['day']:
             self.update_item_frames(self.store_frame1)
             self.create_second_products(self.store_frame1)
             
@@ -1049,10 +1058,10 @@ class Game():
     # To generate new prices for each products in shop, without any arguments:
     def second_products_price(self):
         # It returns nothing if the product_day is the same as today's so that prices can be generated once a day.
-        if self.product_day == self.stats["day"]:
+        if self.product_day == self.stats['day']:
             return
 
-        self.product_day = self.stats["day"]
+        self.product_day = self.stats['day']
 
         # Temporary prices, about to be generated
         self.current_prices = {
@@ -1108,11 +1117,11 @@ class Game():
             item = self.capitalize_first_letter(item)
             self.store_label6.config(text=f"{item} się skończył, wróć jutro.")
             return
-        if self.stats["money"] < price:
+        if self.stats['money'] < price:
             self.store_label6.config(text=f"Nie stać Cię, na {item}.")
             return
 
-        self.stats["money"] -= price
+        self.stats['money'] -= price
         self.products_amounts[item] -= 1
         self.stats[item] += 1
         if not item in auto_use:
@@ -1168,19 +1177,19 @@ class Game():
     def jobless_begging(self, event):
         if not self.stats["work"] == 0:
             quantity = round(self.stats["lastpayment"]/5 * self.calculate_payment_work(), 2)
-            self.stats["money"] += quantity
+            self.stats['money'] += quantity
             self.stats["lastpayment"] = 0
             self.work_label2.config(text=f"Odebrałeś {quantity} pln, ze swojej wypłaty!")
             self.refresh_data(True, False)
             return
-        if self.last_begging == self.stats["day"]:
+        if self.last_begging == self.stats['day']:
             self.work_label2.config(text="Możesz raz dziennie żebrać :v")
             return
 
-        self.last_begging = self.stats["day"]
+        self.last_begging = self.stats['day']
         begging = round(random.uniform(0.10, 3.50), 2)
         difficulty = random.randint(2, 8)
-        self.stats["money"] += begging
+        self.stats['money'] += begging
         self.stats["fatigue"] -= difficulty
         self.refresh_data(True, True)
         self.work_label2.config(text=f"Zdobyłeś {begging} pln!")
@@ -1233,13 +1242,13 @@ class Game():
                 else:
                     # Jeśli nie spełnia wymagań, wyświetl odpowiedni komunikat
                     message = "Awans się nie udał, nie masz wystarczających umiejętności. Brakuje: " + ", ".join(lacking_skills)
-                    self.maingame_label5.config(text=f"Dzień {self.stats["day"]}: {message}")
+                    self.maingame_label5.config(text=f"Dzień {self.stats['day']}: {message}")
 
     def work_promotion(self):
         self.stats["work"] += 1
         self.stats["internship"] = 0
         work, position = self.id_name_job(self.stats["work"])
-        self.maingame_label5.config(text=f"Dzień {self.stats["day"]}: Awansowałeś na stanowisko {position}")
+        self.maingame_label5.config(text=f"Dzień {self.stats['day']}: Awansowałeś na stanowisko {position}")
 
     def apply_job(self, choice, label):
         # Names for jobs:
@@ -1313,10 +1322,10 @@ class Game():
 
     def end_work(self, done, id):
         if done:
-            self.stats["money"] += round(1.5 * self.calculate_payment_work(id), 2)
+            self.stats['money'] += round(1.5 * self.calculate_payment_work(id), 2)
             self.try_promotion()
         else:
-            self.stats["money"] += self.calculate_payment_work(id)
+            self.stats['money'] += self.calculate_payment_work(id)
         self.refresh_data(True, False)
 
         self.minigame.activation()
@@ -1373,8 +1382,8 @@ class Game():
 
         self.maingame_death_frame5_label1.config(text=f"Zapisy usunięte: {self.last_save}")
         self.maingame_death_frame2label2.config(text=self.stats["deathr"])
-        self.maingame_death_frame4_frame1_label2.config(text=self.stats["day"])
-        self.maingame_death_frame4_frame2_label2.config(text=self.stats["money"])
+        self.maingame_death_frame4_frame1_label2.config(text=self.stats['day'])
+        self.maingame_death_frame4_frame2_label2.config(text=self.stats['money'])
         self.maingame_death_frame1.pack(fill=tk.BOTH, expand=True)
 
     def calculate_fatigue_reduction(self):
@@ -1387,10 +1396,10 @@ class Game():
         return self.ranges_payment.get(id, 0)
 
     def next_day(self, needs=True):
-        self.stats["day"] += 1
+        self.stats['day'] += 1
         a = 1       # TEMP boost from creamery B)
         if self.stats["duty"]: self.stats["lastpayment"] += a
-        print(f"day = {self.stats["day"]}")
+        print(f"day = {self.stats['day']}")
 
         # Needs reductions
         if needs and self.stats["duty"] == True:
@@ -1514,7 +1523,6 @@ class MiniGame():
         self.sc_label2.pack(pady=5, side=tk.LEFT, anchor=tk.SW)
 
         self.sc_canvas.bind("<Button-1>", self.sc_click_handler)
-        
     def sc_click_handler(self, event):
         self.sc_click_count += 1
         print(self.sc_click_count)
@@ -1540,7 +1548,7 @@ class MiniGame():
             return random.choice(self.sc_lose_texts)
 
     def sc_win(self, value, skip = None):
-        self.main.stats["money"] += value
+        self.main.stats['money'] += value
         self.main.refresh_data(True, False)
         if skip:
             self.activation()
@@ -1670,7 +1678,125 @@ class MiniGame():
     
     def work_end(self):
         self.main.end_work(True, self.work_job)
+
+class CheatMenu():
+    def __init__(self, main):
+        self.sync(main)
+        if not self.main.root_cheat_opened:
+            self.create_root_cheat()
+
+    def sync(self, main):
+        self.main = main
+    
+    def test(self):
+        self.main.minigame = MiniGame(self.main)
+    
+    def max_stats(self, suspects, value, tyoe):
+        """Funckja pod cheat menu
+        Ustala suspects wartość value."""
+        for name in suspects:
+            self.main.stats[name] = value
         
+        if tyoe == 1:
+            self.main.refresh_data(False, False, True)
+        if tyoe == 2:
+            self.main.refresh_data(False, True, False)
+
+    def give_money(self):
+        value = float(self.rootcheat_entry.get())
+        print(value)
+
+        self.main.stats['money'] += value
+        self.main.refresh_data(True, False, False)
+
+    def add_day(self):
+        value = round(int(self.rootcheat_entry.get()))
+        print(value)
+
+        self.main.stats['day'] += value
+        self.main.refresh_data(True, False, False)
+
+    def create_root_cheat(self):
+        print("create_root_cheat()")
+        
+        self.main.root_cheat_opened = True
+        self.root_cheat = tk.Toplevel()
+        self.root_cheat.resizable(False, False)
+        
+        self.rootcheat_main = tk.Frame(self.root_cheat, bg=self.main.color_1)
+        self.rootcheat_frame0 = tk.Frame(self.rootcheat_main, bg=self.main.color_1)
+        self.rootcheat_label1 = tk.Label(self.rootcheat_frame0, text="Cheat Menu", font=self.main.font_h2, fg=self.main.color_4, bg=self.main.color_1, width=25)
+
+        self.rootcheat_main.pack(fill=tk.BOTH, expand=True)
+        self.rootcheat_frame0.pack(fill=tk.BOTH, expand=True, padx=3, pady=5)
+        self.rootcheat_label1.pack(fill=tk.BOTH, expand=True, padx=3, pady=5)
+
+    # Main tab:
+        self.rootcheat_frame1 = tk.Frame(self.rootcheat_main, bg=self.main.color_1)
+        self.rootcheat_frame1.pack(fill=tk.BOTH, expand=True)
+        button_labels = ["Max umiejętności", "Max statystyk", "Minigry..", "Dodaj pieniądze", "Dodaj dni"]
+        buttons_command = [
+            lambda: [self.max_stats(["intelligence", "strength", "stamina"], 100, 1)],
+            lambda: [self.max_stats(["thirst", "hunger", "fatigue"], 150, 2)],
+            lambda: [self.main.intermediary(None, None, self.main.hide_frame, self.rootcheat_frame1), self.rootcheat_frame2.pack(fill=tk.BOTH, expand=True)],
+            lambda: [self.give_money()],
+            lambda: [self.add_day()]
+            ]
+        rootcheat_buttons = []
+        rootcheat_emptys = []
+
+        # Loop for create labels and visualization:
+        x1 = 0
+        y1 = 0
+        z = 0
+        for i in [x for x in range(1, len(button_labels) + 1)]:
+            rootcheat_buttons.append(tk.Button(self.rootcheat_frame1, text=button_labels[i-1], font=self.main.font_p2i, fg=self.main.color_5, bg=self.main.color_1, width=17, command=buttons_command[i-1]))
+            self.rootcheat_frame1.grid_columnconfigure(x1, weight=1)
+            rootcheat_buttons[i-1].grid(row=y1, column=x1, ipady=4, padx=4)
+            x1 += 1
+            if i % 3 == 0:
+                x1 = 0
+                y1 += 3
+                if y1 == 3:
+                    rootcheat_emptys.append(tk.Label(self.rootcheat_frame1, text="- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -", font=self.main.font_p1b, fg=self.main.color_2, bg=self.main.color_1))
+                    rootcheat_emptys[z].grid(row=y1 - 2 , column=x1, columnspan=3)
+                    z += 1
+                    self.rootcheat_entry = tk.Entry(self.rootcheat_frame1, width=20)
+                    self.rootcheat_entry.grid(row=2, column=1, pady=12)
+
+    # Minigames tab:
+        self.rootcheat_frame2 = tk.Frame(self.rootcheat_main, bg=self.main.color_1)
+        self.rootcheat_frame2.pack(fill=tk.BOTH, expand=True)
+        
+        mg_frame0 = tk.Frame(self.rootcheat_frame2, bg=self.main.color_1)
+        mg_frame0.pack()
+        
+        mg_buttons = []
+        mg_button_labels = ["Zdrapka", "Pakowacz", "Magazynier"]
+        mg_buttons_command = [
+            lambda: [self.test(), self.main.minigame.scratch_card()],
+            lambda: [self.main.pre_work(1)],
+            lambda: [self.main.pre_work(2)]
+        ]
+        
+        x2 = 0
+        y2 = 0
+        for i in range(len(mg_button_labels)):
+            mg_buttons.append(tk.Button(mg_frame0, text=mg_button_labels[i], font=self.main.font_p2i, fg=self.main.color_3, bg=self.main.color_4, width=14, command=mg_buttons_command[i]))
+            mg_buttons[i].grid(row=y2, column=x2, padx=3)
+            x2 += 1
+            if x2 % 3 == 0:
+                x2 = 0
+                y2 += 1
+        
+        rootcheat_backbutton = self.main.create_back_button(self.rootcheat_frame2, 14, self.rootcheat_frame2, self.rootcheat_frame1, {"fill": tk.BOTH, "expand": True})
+        rootcheat_backbutton.pack()
+        
+        
+        
+        self.root_cheat.protocol("WM_DELETE_WINDOW", lambda: print("No escape"))
+        self.rootcheat_frame2.pack_forget()
+    
 root = tk.Tk()
 game = Game(root)
 root.mainloop()
