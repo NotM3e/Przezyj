@@ -42,6 +42,7 @@ class Game():
         self.root_second_opened = 0
         self.root_third_opened = False
         self.root_cheat_opened = False
+        self.s_question_opened = False
 
         # self.create_statistics() # TEMP
         # CheatMenu(self)
@@ -204,10 +205,14 @@ class Game():
 
     def small_question(self, frame, quest, next_func, *arg):
         label = self.find_label(frame)
-
-        if hasattr(self, 's_question_frame') and self.s_question_frame:
-            if self.s_question_frame.winfo_ismapped():
-                return
+        
+        if self.s_question_opened:
+            return
+        
+        self.s_question_opened = True
+        # if hasattr(self, 's_question_frame') and self.s_question_frame:
+        #     if self.s_question_frame.winfo_ismapped():
+        #         return
         if label:
             label.config(text="")
         
@@ -215,15 +220,18 @@ class Game():
         self.s_question_label1 = tk.Label(self.s_question_frame, text=quest, font=self.font_p2, fg=self.color_4, bg=self.color_1, wraplength=430)
         self.s_question_frame1 = tk.Frame(self.s_question_frame, bg=self.color_1)
         self.s_question_button1 = tk.Button(self.s_question_frame1, text="Nie", font=self.font_p2, bg=self.color_5, width=5, command=lambda:
-                [self.hide_frame(self.s_question_frame)])
+                [self.hide_frame(self.s_question_frame), self.end_small_question()])
         self.s_question_button2 = tk.Button(self.s_question_frame1, text="Tak", font=self.font_p2, bg=self.color_5, width=5, command=lambda:
-                [self.hide_frame(self.s_question_frame), next_func(*arg)])
+                [self.hide_frame(self.s_question_frame), next_func(*arg), self.end_small_question()])
 
         self.s_question_frame.pack(expand=True)
         self.s_question_label1.pack(pady=2)
         self.s_question_frame1.pack(expand=True)
         self.s_question_button1.pack(padx=5, side=tk.LEFT)
         self.s_question_button2.pack(padx=5, side=tk.LEFT)
+
+    def end_small_question(self):
+        self.s_question_opened = False
 
     def find_label(self, frame):
         for child in frame.winfo_children():  # Iteracja przez dzieci ramki
@@ -985,7 +993,7 @@ class Game():
         self.work_skills_label1 = tk.Label(self.work_skills_frame0, text="Twoje umiejętności", font=self.font_h2, fg=self.color_4, bg=self.color_1, width=25)
         self.work_skills_frame1 = tk.Frame(self.work_skills_frame0, bg=self.color_1)
         self.work_skills_frame2 = tk.Frame(self.work_skills_frame0, bg=self.color_1)
-        self.work_skills_label2 = tk.Label(self.work_skills_frame2, text="", font=self.font_p2, fg=self.color_4, bg=self.color_1, wraplength=270)
+        self.work_skills_label2 = tk.Label(self.work_skills_frame2, text="Aby zyskiwać umiejętności, wybierz lewym przyciskiem myszy pasek", font=self.font_p2, fg=self.color_4, bg=self.color_1, wraplength=270)
 
         self.work_skills_titles = ["Inteligencja", "Siła", "Stamina", "Prawo jazdy?", "Kurs zarządzania?", "WIP"]
         self.work_skills_definition = [True, True, True, False, False, False] # True = progressbar, False = checkbox
@@ -1041,7 +1049,7 @@ class Game():
         self.work_skills_progress[2].bind("<Button-1>", lambda event: self.increase_stats(["stamina"], 5, True))
 
         # Question icon
-        self.work_skills_question_canvas = self.create_question_icon(self.work_skills_frame2, "Umiejętności pracy!", "BRAK")
+        self.work_skills_question_canvas = self.create_question_icon(self.work_skills_frame2, "Umiejętności pracy!", "Ulepszaj umiejętności swojej postaci, aby móc awansować w pracy! Aby to zrobić, kliknij lewym przyciskiem myszy na pasek postępu. Pamiętaj, że akcja zabiera trochę energii, więc bądź ostrożny!")
         # TEMP konfiguracja wiadomości
 
         # self.work_skills_progress[3].bind("<Button-1>", lambda event: self.small_question(self.work_skills_frame2, "Czy chcesz przystąpić do egzaminu na prawo jazdy?", None, None)) # TEMP
